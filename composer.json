@@ -1,0 +1,49 @@
+{
+    "name": "kainxspirits/laravel-pubsub-queue",
+    "description": "Queue driver for Google Cloud Pub/Sub.",
+    "keywords": [
+        "kainxspirits",
+        "laravel",
+        "queue",
+        "gcp",
+        "google",
+        "pubsub"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Kendryck",
+            "email": "kainxspirits@users.noreply.github.com"
+        }
+    ],
+    "require": {
+        "php" : ">=7.1",
+        "illuminate/queue": "^5.6",
+        "google/cloud-pubsub": "^1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kainxspirits\\PubSubQueue\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kainxspirits\\PubSubQueue\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kainxspirits\\PubSubQueue\\PubSubQueueServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
