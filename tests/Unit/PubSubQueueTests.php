@@ -284,7 +284,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
     }
 
-    public  function testSubscriptionIsRetrieved()
+    public function testSubscriptionIsRetrieved()
     {
         $this->topic->method('subscription')
             ->willReturn($this->subscription);
