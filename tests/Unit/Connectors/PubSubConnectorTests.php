@@ -12,6 +12,7 @@ class PubSubConnectorTests extends TestCase
 {
     public function testImplementsConnectorInterface()
     {
+        putenv('SUPPRESS_GCLOUD_CREDS_WARNING=true');
         $reflection = new ReflectionClass(PubSubConnector::class);
         $this->assertTrue($reflection->implementsInterface(ConnectorInterface::class));
     }
