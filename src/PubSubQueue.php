@@ -78,6 +78,8 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $topic = $this->getTopic($queue, true);
 
+        $this->subscribeToTopic($topic);
+
         return $topic->publish([
             'data' => $payload,
             'attributes' => $options,
@@ -131,8 +133,6 @@ class PubSubQueue extends Queue implements QueueContract
                 $this->connectionName,
                 $queue
             );
-        } else {
-            $subscription->delete();
         }
     }
 
@@ -154,6 +154,8 @@ class PubSubQueue extends Queue implements QueueContract
         }
 
         $topic = $this->getTopic($queue, true);
+
+        $this->subscribeToTopic($topic);
 
         return $topic->publishBatch($payloads);
     }
@@ -220,10 +222,27 @@ class PubSubQueue extends Queue implements QueueContract
 
         if (! $topic->exists() && $create) {
             $topic->create();
-            $topic->subscribe($this->getSubscriberName());
         }
 
         return $topic;
+    }
+
+    /**
+     * Create a new subscription to a topic.
+     *
+     * @param  \Google\Cloud\PubSub\Topic  $topic
+     *
+     * @return \Google\Cloud\PubSub\Subscription
+     */
+    public function subscribeToTopic(Topic $topic)
+    {
+        $subscription = $topic->subscription($this->getSubscriberName());
+
+        if (! $subscription->exists()) {
+            $subscription = $topic->subscribe($this->getSubscriberName());
+        }
+
+        return $subscription;
     }
 
     /**
