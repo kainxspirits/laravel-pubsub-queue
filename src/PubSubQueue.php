@@ -133,8 +133,6 @@ class PubSubQueue extends Queue implements QueueContract
                 $this->connectionName,
                 $queue
             );
-        } else {
-            $subscription->delete();
         }
     }
 

@@ -135,9 +135,6 @@ class PubSubQueueTests extends TestCase
         $this->subscription->method('pull')
             ->willReturn([]);
 
-        $this->subscription->expects($this->once())
-            ->method('delete');
-
         $this->topic->method('subscription')
             ->willReturn($this->subscription);
 
