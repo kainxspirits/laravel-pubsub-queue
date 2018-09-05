@@ -32,8 +32,14 @@ class PubSubQueueTests extends TestCase
 
         $this->queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods(['pushRaw', 'getTopic', 'exists', 'subscription', 'availableAt'])
-            ->getMock();
+            ->setMethods([
+                'pushRaw',
+                'getTopic',
+                'exists',
+                'subscription',
+                'availableAt',
+                'subscribeToTopic',
+            ])->getMock();
     }
 
     public function testImplementsQueueInterface()
@@ -63,7 +69,7 @@ class PubSubQueueTests extends TestCase
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods(['getTopic'])
+            ->setMethods(['getTopic', 'subscribeToTopic'])
             ->getMock();
 
         $this->topic->method('publish')
@@ -71,6 +77,9 @@ class PubSubQueueTests extends TestCase
 
         $queue->method('getTopic')
             ->willReturn($this->topic);
+
+        $queue->method('subscribeToTopic')
+            ->willReturn($this->subscription);
 
         $this->assertEquals($this->result, $queue->pushRaw('test'));
     }
@@ -135,9 +144,6 @@ class PubSubQueueTests extends TestCase
         $this->topic->method('exists')
             ->willReturn(true);
 
-        $this->topic->expects($this->once())
-            ->method('delete');
-
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
 
@@ -163,6 +169,9 @@ class PubSubQueueTests extends TestCase
 
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
+
+        $this->queue->method('subscribeToTopic')
+            ->willReturn($this->subscription);
 
         $this->assertEquals($this->result, $this->queue->bulk(['test'], ['foo' => 'bar']));
     }
@@ -257,6 +266,41 @@ class PubSubQueueTests extends TestCase
             ->getMock();
 
         $this->assertTrue($queue->getTopic('test', true) instanceof Topic);
+    }
+
+    public function testSubscribtionIsCreated()
+    {
+        $this->topic->method('subscription')
+            ->willReturn($this->subscription);
+
+        $this->topic->method('subscribe')
+            ->willReturn($this->subscription);
+
+        $this->subscription->method('exists')
+            ->willReturn(false);
+
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+            ->setConstructorArgs([$this->client, 'default'])
+            ->setMethods()
+            ->getMock();
+
+        $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
+    }
+
+    public  function testSubscriptionIsRetrieved()
+    {
+        $this->topic->method('subscription')
+            ->willReturn($this->subscription);
+
+        $this->subscription->method('exists')
+            ->willReturn(true);
+
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+            ->setConstructorArgs([$this->client, 'default'])
+            ->setMethods()
+            ->getMock();
+
+        $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
     }
 
     public function testGetSubscriberName()
