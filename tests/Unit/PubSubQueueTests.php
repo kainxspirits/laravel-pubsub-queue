@@ -135,9 +135,6 @@ class PubSubQueueTests extends TestCase
         $this->topic->method('exists')
             ->willReturn(true);
 
-        $this->topic->expects($this->once())
-            ->method('delete');
-
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
 

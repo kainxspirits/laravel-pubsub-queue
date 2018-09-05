@@ -133,7 +133,6 @@ class PubSubQueue extends Queue implements QueueContract
             );
         } else {
             $subscription->delete();
-            $topic->delete();
         }
     }
 
