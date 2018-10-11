@@ -80,10 +80,13 @@ class PubSubQueue extends Queue implements QueueContract
 
         $this->subscribeToTopic($topic);
 
-        return $topic->publish([
-            'data' => $payload,
-            'attributes' => $options,
-        ]);
+        $publish = ['data' => $payload];
+
+        if (! empty($options)) {
+            $publish['attributes'] = $options;
+        }
+
+        return $topic->publish($publish);
     }
 
     /**
