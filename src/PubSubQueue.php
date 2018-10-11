@@ -129,6 +129,8 @@ class PubSubQueue extends Queue implements QueueContract
         ]);
 
         if (! empty($messages) && count($messages) > 0) {
+            $this->acknowledge($messages[0], $queue);
+
             return new PubSubJob(
                 $this->container,
                 $this,
@@ -176,19 +178,16 @@ class PubSubQueue extends Queue implements QueueContract
     }
 
     /**
-     * Acknowledge a message and republish it onto the queue.
+     * Republish a message onto the queue.
      *
      * @param  \Google\Cloud\PubSub\Message $message
      * @param  string $queue
      *
      * @return mixed
      */
-    public function acknowledgeAndPublish(Message $message, $queue = null, $options = [], $delay = 0)
+    public function republish(Message $message, $queue = null, $options = [], $delay = 0)
     {
         $topic = $this->getTopic($queue);
-        $subscription = $topic->subscription($this->getSubscriberName());
-
-        $subscription->acknowledge($message);
 
         $options = array_merge([
             'available_at' => $this->availableAt($delay),

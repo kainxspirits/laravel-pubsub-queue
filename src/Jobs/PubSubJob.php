@@ -63,18 +63,6 @@ class PubSubJob extends Job implements JobContract
     }
 
     /**
-     * Delete the job from the queue.
-     *
-     * @return void
-     */
-    public function delete()
-    {
-        parent::delete();
-
-        $this->pubsub->acknowledge($this->job, $this->queue);
-    }
-
-    /**
      * Get the number of times the job has been attempted.
      *
      * @return int
@@ -95,7 +83,7 @@ class PubSubJob extends Job implements JobContract
         parent::release($delay);
 
         $attempts = $this->attempts() + 1;
-        $this->pubsub->acknowledgeAndPublish(
+        $this->pubsub->republish(
             $this->job,
             $this->queue,
             ['attempts' => $attempts],
