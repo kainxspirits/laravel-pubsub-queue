@@ -62,7 +62,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function push($job, $data = '', $queue = null)
     {
-        return $this->pushRaw($this->createPayload($job, $data), $queue);
+        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue);
     }
 
     /**
@@ -102,7 +102,7 @@ class PubSubQueue extends Queue implements QueueContract
     public function later($delay, $job, $data = '', $queue = null)
     {
         return $this->pushRaw(
-            $this->createPayload($job, $data),
+            $this->createPayload($job, $queue, $data),
             $queue,
             ['available_at' => $this->availableAt($delay)]
         );
@@ -153,7 +153,7 @@ class PubSubQueue extends Queue implements QueueContract
         $payloads = [];
 
         foreach ((array) $jobs as $job) {
-            $payloads[] = ['data' => $this->createPayload($job, $data)];
+            $payloads[] = ['data' => $this->createPayload($job, $queue, $data)];
         }
 
         $topic = $this->getTopic($queue, true);
@@ -203,9 +203,9 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * {@inheritdoc}
      */
-    protected function createPayload($job, $data = '')
+    protected function createPayload($job, $queue = null, $data = '')
     {
-        $payload = parent::createPayload($job, $data);
+        $payload = parent::createPayload($job, $queue, $data);
 
         return base64_encode($payload);
     }
