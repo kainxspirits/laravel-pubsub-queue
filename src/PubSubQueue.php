@@ -3,6 +3,7 @@
 namespace Kainxspirits\PubSubQueue;
 
 use Illuminate\Queue\Queue;
+use Illuminate\Support\Str;
 use Google\Cloud\PubSub\Topic;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
@@ -62,7 +63,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function push($job, $data = '', $queue = null)
     {
-        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue);
+        return $this->pushRaw($this->createPayload($job, $this->getQueue($queue), $data), $queue);
     }
 
     /**
@@ -86,7 +87,11 @@ class PubSubQueue extends Queue implements QueueContract
             $publish['attributes'] = $options;
         }
 
-        return $topic->publish($publish);
+        $topic->publish($publish);
+
+        $decoded_payload = json_decode(base64_decode($payload), true);
+
+        return $decoded_payload['id'];
     }
 
     /**
@@ -102,7 +107,7 @@ class PubSubQueue extends Queue implements QueueContract
     public function later($delay, $job, $data = '', $queue = null)
     {
         return $this->pushRaw(
-            $this->createPayload($job, $queue, $data),
+            $this->createPayload($job, $this->getQueue($queue), $data),
             $queue,
             ['available_at' => $this->availableAt($delay)]
         );
@@ -116,7 +121,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function pop($queue = null)
     {
-        $topic = $this->getTopic($queue);
+        $topic = $this->getTopic($this->getQueue($queue));
 
         if (! $topic->exists()) {
             return;
@@ -134,7 +139,7 @@ class PubSubQueue extends Queue implements QueueContract
                 $this,
                 $messages[0],
                 $this->connectionName,
-                $queue
+                $this->getQueue($queue)
             );
         }
     }
@@ -153,10 +158,10 @@ class PubSubQueue extends Queue implements QueueContract
         $payloads = [];
 
         foreach ((array) $jobs as $job) {
-            $payloads[] = ['data' => $this->createPayload($job, $queue, $data)];
+            $payloads[] = ['data' => $this->createPayload($job, $this->getQueue($queue), $data)];
         }
 
-        $topic = $this->getTopic($queue, true);
+        $topic = $this->getTopic($this->getQueue($queue), true);
 
         $this->subscribeToTopic($topic);
 
@@ -171,7 +176,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function acknowledge(Message $message, $queue = null)
     {
-        $subscription = $this->getTopic($queue)->subscription($this->getSubscriberName());
+        $subscription = $this->getTopic($this->getQueue($queue))->subscription($this->getSubscriberName());
         $subscription->acknowledge($message);
     }
 
@@ -185,7 +190,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function acknowledgeAndPublish(Message $message, $queue = null, $options = [], $delay = 0)
     {
-        $topic = $this->getTopic($queue);
+        $topic = $this->getTopic($this->getQueue($queue));
         $subscription = $topic->subscription($this->getSubscriberName());
 
         $subscription->acknowledge($message);
@@ -201,13 +206,35 @@ class PubSubQueue extends Queue implements QueueContract
     }
 
     /**
-     * {@inheritdoc}
+     * Create a payload string from the given job and data.
+     *
+     * @param  string  $job
+     * @param  string  $queue
+     * @param  mixed   $data
+     * @return string
+     *
+     * @throws \Illuminate\Queue\InvalidPayloadException
      */
-    protected function createPayload($job, $queue = null, $data = '')
+    protected function createPayload($job, $queue, $data = '')
     {
-        $payload = parent::createPayload($job, $queue, $data);
+        $payload = parent::createPayload($job, $this->getQueue($queue), $data);
 
         return base64_encode($payload);
+    }
+
+    /**
+     * Create a payload array from the given job and data.
+     *
+     * @param  mixed  $job
+     * @param  string  $queue
+     * @param  mixed  $data
+     * @return array
+     */
+    protected function createPayloadArray($job, $queue, $data = '')
+    {
+        return array_merge(parent::createPayloadArray($job, $this->getQueue($queue), $data), [
+            'id' => $this->getRandomId(),
+        ]);
     }
 
     /**
@@ -220,7 +247,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function getTopic($queue, $create = false)
     {
-        $queue = $queue ?: $this->default;
+        $queue = $this->getQueue($queue);
         $topic = $this->pubsub->topic($queue);
 
         if (! $topic->exists() && $create) {
@@ -268,5 +295,26 @@ class PubSubQueue extends Queue implements QueueContract
     public function getPubSub()
     {
         return $this->pubsub;
+    }
+
+    /**
+     * Get the queue or return the default.
+     *
+     * @param  string|null  $queue
+     * @return string
+     */
+    public function getQueue($queue)
+    {
+        return $queue ?: $this->default;
+    }
+
+    /**
+     * Get a random ID string.
+     *
+     * @return string
+     */
+    protected function getRandomId()
+    {
+        return Str::random(32);
     }
 }

@@ -40,6 +40,8 @@ class PubSubJob extends Job implements JobContract
         $this->queue = $queue;
         $this->container = $container;
         $this->connectionName = $connectionName;
+
+        $this->decoded = $this->payload();
     }
 
     /**
@@ -49,7 +51,7 @@ class PubSubJob extends Job implements JobContract
      */
     public function getJobId()
     {
-        return $this->job->id();
+        return $this->decoded['id'] ?? null;
     }
 
     /**
@@ -81,7 +83,7 @@ class PubSubJob extends Job implements JobContract
      */
     public function attempts()
     {
-        return (int) $this->job->attributes('attempts') ?? 0;
+        return ((int) $this->job->attribute('attempts') ?? 0) + 1;
     }
 
     /**
@@ -94,7 +96,8 @@ class PubSubJob extends Job implements JobContract
     {
         parent::release($delay);
 
-        $attempts = $this->attempts() + 1;
+        $attempts = $this->attempts();
+
         $this->pubsub->acknowledgeAndPublish(
             $this->job,
             $this->queue,
