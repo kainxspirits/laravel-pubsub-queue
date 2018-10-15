@@ -21,7 +21,7 @@ class PubSubJobTests extends TestCase
     public function setUp()
     {
         $this->messageId = '1234';
-        $this->messageData = json_encode(['foo' => 'bar']);
+        $this->messageData = json_encode(['id' => $this->messageId, 'foo' => 'bar']);
         $this->messageEncodedData = base64_encode($this->messageData);
 
         $this->container = $this->createMock(Container::class);
