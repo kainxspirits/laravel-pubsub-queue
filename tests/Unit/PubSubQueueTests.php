@@ -23,7 +23,7 @@ class PubSubQueueTests extends TestCase
 
     public function setUp()
     {
-        $this->result = ['message-id'];
+        $this->result = 'message-id';
 
         $this->topic = $this->createMock(Topic::class);
         $this->client = $this->createMock(PubSubClient::class);
@@ -81,7 +81,9 @@ class PubSubQueueTests extends TestCase
         $queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
 
-        $this->assertEquals($this->result, $queue->pushRaw('test'));
+        $payload = base64_encode(json_encode(['id' => $this->result]));
+
+        $this->assertEquals($this->result, $queue->pushRaw($payload));
     }
 
     public function testLater()
