@@ -1,6 +1,6 @@
 <?php
 
-namespace Kainxspirits\PubSubQueue\Tests\Unit;
+namespace PubSub\PubSubQueue\Tests\Unit;
 
 use Carbon\Carbon;
 use ReflectionClass;
@@ -10,8 +10,8 @@ use Google\Cloud\PubSub\Message;
 use Illuminate\Container\Container;
 use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\Subscription;
-use Kainxspirits\PubSubQueue\PubSubQueue;
-use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use PubSub\PubSubQueue\PubSubQueue;
+use PubSub\PubSubQueue\Jobs\PubSubJob;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 
 class PubSubQueueTests extends TestCase

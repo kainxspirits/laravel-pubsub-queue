@@ -10,13 +10,13 @@ This package is a Laravel 5.7 queue driver that use the [Google PubSub](https://
 You can easily install this package with [Composer](https://getcomposer.org) by running this command :
 
 ```bash
-composer require kainxspirits/laravel-pubsub-queue
+composer require PubSub/laravel-pubsub-queue
 ```
 
 If you disabled package discovery, you can still manually register this package by adding the following line to the providers of your `config/app.php` file :
 
 ```php
-Kainxspirits\PubSubQueue\PubSubQueueServiceProvider::class,
+PubSub\PubSubQueue\PubSubQueueServiceProvider::class,
 ```
 
 ## Configuration
