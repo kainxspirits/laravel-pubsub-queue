@@ -24,6 +24,7 @@ class PubSubConnectorTests extends TestCase
         $queue = $connector->connect($config);
 
         $this->assertTrue($queue instanceof PubSubQueue);
+        $this->assertEquals($queue->getSubscriberName(), 'test-subscriber');
     }
 
     private function createFakeConfig()
@@ -31,6 +32,7 @@ class PubSubConnectorTests extends TestCase
         return [
             'queue' => 'test',
             'project_id' => 'the-project-id',
+            'subscriber' => 'test-subscriber',
             'retries' => 1,
             'request_timeout' => 60,
         ];

@@ -27,7 +27,8 @@ class PubSubConnector implements ConnectorInterface
 
         return new PubSubQueue(
             new PubSubClient($gcp_config),
-            $config['queue'] ?? $this->default_queue
+            $config['queue'] ?? $this->default_queue,
+            $config['subscriber'] ?? 'subscriber'
         );
     }
 
