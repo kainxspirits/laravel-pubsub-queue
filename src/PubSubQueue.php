@@ -33,7 +33,6 @@ class PubSubQueue extends Queue implements QueueContract
      */
     protected $subscriber;
 
-
     /**
      * Create a new GCP PubSub instance.
      *
