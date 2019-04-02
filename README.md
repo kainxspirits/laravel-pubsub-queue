@@ -23,7 +23,7 @@ Kainxspirits\PubSubQueue\PubSubQueueServiceProvider::class,
 
 Add a `pubsub` connection to your `config/queue.php` file. From there, you can use any configuration values from the original pubsub client. Just make sure to use snake_case for the keys name.
 
-You can check [Google Cloud PubSub client](http://googlecloudplatform.github.io/google-cloud-php/#/docs/google-cloud/v0.62.0/pubsub/pubsubclient?method=__construct) for more details about the different options.
+You can check [Google Cloud PubSub client](http://googleapis.github.io/google-cloud-php/#/docs/cloud-pubsub/master/pubsub/pubsubclient?method=__construct) for more details about the different options.
 
 ```php
 'pubsub' => [
@@ -31,7 +31,8 @@ You can check [Google Cloud PubSub client](http://googlecloudplatform.github.io/
     'queue' => env('PUBSUB_QUEUE', 'default'),
     'project_id' => env('PUBSUB_PROJECT_ID', 'your-project-id'),
     'retries' => 3,
-    'request_timeout' => 60
+    'request_timeout' => 60,
+    'subscriber' => 'subscriber-name',
 ],
 ```
 
