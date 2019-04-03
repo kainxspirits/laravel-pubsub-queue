@@ -89,7 +89,7 @@ class PubSubQueue extends Queue implements QueueContract
 
         $this->subscribeToTopic($topic);
 
-        $publish = ['data' => $payload];
+        $publish = ['data' => base64_encode($payload)];
 
         if (! empty($options)) {
             $publish['attributes'] = $options;
@@ -97,7 +97,7 @@ class PubSubQueue extends Queue implements QueueContract
 
         $topic->publish($publish);
 
-        $decoded_payload = json_decode(base64_decode($payload), true);
+        $decoded_payload = json_decode($payload, true);
 
         return $decoded_payload['id'];
     }
@@ -166,7 +166,8 @@ class PubSubQueue extends Queue implements QueueContract
         $payloads = [];
 
         foreach ((array) $jobs as $job) {
-            $payloads[] = ['data' => $this->createPayload($job, $this->getQueue($queue), $data)];
+            $payload = $this->createPayload($job, $this->getQueue($queue), $data);
+            $payloads[] = ['data' => base64_encode($payload)];
         }
 
         $topic = $this->getTopic($this->getQueue($queue), true);
@@ -211,23 +212,6 @@ class PubSubQueue extends Queue implements QueueContract
             'data' => $message->data(),
             'attributes' => $options,
         ]);
-    }
-
-    /**
-     * Create a payload string from the given job and data.
-     *
-     * @param  string  $job
-     * @param  string  $queue
-     * @param  mixed   $data
-     * @return string
-     *
-     * @throws \Illuminate\Queue\InvalidPayloadException
-     */
-    protected function createPayload($job, $queue, $data = '')
-    {
-        $payload = parent::createPayload($job, $this->getQueue($queue), $data);
-
-        return base64_encode($payload);
     }
 
     /**

@@ -57,7 +57,7 @@ class PubSubQueueTests extends TestCase
             ->method('pushRaw')
             ->willReturn($this->result)
             ->with($this->callback(function ($payload) use ($job, $data) {
-                $decoded_payload = json_decode(base64_decode($payload), true);
+                $decoded_payload = json_decode($payload, true);
 
                 return $decoded_payload['data'] === $data && $decoded_payload['job'] === $job;
             }));
@@ -72,16 +72,21 @@ class PubSubQueueTests extends TestCase
             ->setMethods(['getTopic', 'subscribeToTopic'])
             ->getMock();
 
+        $payload = json_encode(['id' => $this->result]);
+
         $this->topic->method('publish')
-            ->willReturn($this->result);
+            ->willReturn($this->result)
+            ->with($this->callback(function ($publish) use ($payload) {
+                $decoded_payload = base64_decode($publish['data']);
+
+                return $decoded_payload === $payload;
+            }));
 
         $queue->method('getTopic')
             ->willReturn($this->topic);
 
         $queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
-
-        $payload = base64_encode(json_encode(['id' => $this->result]));
 
         $this->assertEquals($this->result, $queue->pushRaw($payload));
     }
@@ -162,9 +167,17 @@ class PubSubQueueTests extends TestCase
 
     public function testBulk()
     {
+        $jobs = ['test'];
+        $data = ['foo' => 'bar'];
+
         $this->topic->expects($this->once())
             ->method('publishBatch')
-            ->willReturn($this->result);
+            ->willReturn($this->result)
+            ->with($this->callback(function ($payloads) use ($jobs, $data) {
+                $decoded_payload = json_decode(base64_decode($payloads[0]['data']), true);
+
+                return $decoded_payload['job'] === $jobs[0] && $decoded_payload['data'] === $data;
+            }));
 
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
@@ -172,7 +185,7 @@ class PubSubQueueTests extends TestCase
         $this->queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
 
-        $this->assertEquals($this->result, $this->queue->bulk(['test'], ['foo' => 'bar']));
+        $this->assertEquals($this->result, $this->queue->bulk($jobs, $data));
     }
 
     public function testAcknowledge()
