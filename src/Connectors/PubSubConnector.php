@@ -2,6 +2,7 @@
 
 namespace Kainxspirits\PubSubQueue\Connectors;
 
+use Illuminate\Support\Str;
 use Google\Cloud\PubSub\PubSubClient;
 use Kainxspirits\PubSubQueue\PubSubQueue;
 use Illuminate\Queue\Connectors\ConnectorInterface;
@@ -58,6 +59,6 @@ class PubSubConnector implements ConnectorInterface
      */
     protected function transformConfigKeys($item, $key)
     {
-        return [camel_case($key), $item];
+        return [Str::camel($key), $item];
     }
 }

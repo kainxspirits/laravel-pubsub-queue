@@ -19,7 +19,9 @@
     ],
     "require": {
         "php" : ">=7.1",
+        "ext-json": "*",
         "illuminate/queue": "5.7.* | 5.8.*",
+        "illuminate/support": "5.7.* | 5.8.*",
         "google/cloud-pubsub": "^1.1"
     },
     "require-dev": {
