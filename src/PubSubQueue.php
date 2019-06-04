@@ -215,7 +215,7 @@ class PubSubQueue extends Queue implements QueueContract
     }
 
     /**
-     * Cast all attributes to 'string'
+     * Cast all attributes to string.
      *
      * this is required because google PubSub does only accept string values for attributes.
      *

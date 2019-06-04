@@ -79,7 +79,7 @@ class PubSubQueueTests extends TestCase
             ->with($this->callback(function ($publish) use ($payload) {
                 $decoded_payload = base64_decode($publish['data']);
 
-                if (!isset($publish['attributes']['numericValue']) || $publish['attributes']['numericValue'] !== (string)123456) {
+                if (! isset($publish['attributes']['numericValue']) || $publish['attributes']['numericValue'] !== (string) 123456) {
                     return false;
                 }
 
