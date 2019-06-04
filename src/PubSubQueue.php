@@ -92,7 +92,7 @@ class PubSubQueue extends Queue implements QueueContract
         $publish = ['data' => base64_encode($payload)];
 
         if (! empty($options)) {
-            $publish['attributes'] = $options;
+            $publish['attributes'] = $this->castAttributes($options);
         }
 
         $topic->publish($publish);
@@ -210,8 +210,26 @@ class PubSubQueue extends Queue implements QueueContract
 
         return $topic->publish([
             'data' => $message->data(),
-            'attributes' => $options,
+            'attributes' => $this->castAttributes($options),
         ]);
+    }
+
+    /**
+     * Cast all attributes to 'string'
+     *
+     * this is required because google PubSub does only accept string values for attributes.
+     *
+     * @param $options
+     *
+     * @return array
+     */
+    private function castAttributes($options)
+    {
+        foreach ($options as $key => &$value) {
+            $value = (string) $value;
+        }
+
+        return $options;
     }
 
     /**

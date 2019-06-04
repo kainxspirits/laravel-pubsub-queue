@@ -79,6 +79,10 @@ class PubSubQueueTests extends TestCase
             ->with($this->callback(function ($publish) use ($payload) {
                 $decoded_payload = base64_decode($publish['data']);
 
+                if (!isset($publish['attributes']['numericValue']) || $publish['attributes']['numericValue'] !== (string)123456) {
+                    return false;
+                }
+
                 return $decoded_payload === $payload;
             }));
 
@@ -88,7 +92,7 @@ class PubSubQueueTests extends TestCase
         $queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
 
-        $this->assertEquals($this->result, $queue->pushRaw($payload));
+        $this->assertEquals($this->result, $queue->pushRaw($payload, null, ['numericValue' => 123456]));
     }
 
     public function testLater()
@@ -204,7 +208,7 @@ class PubSubQueueTests extends TestCase
 
     public function testAcknowledgeAndPublish()
     {
-        $options = ['foo' => 'bar'];
+        $options = ['foo' => 'bar', 'numericValue' => 2435];
         $delay = 60;
         $delay_timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
 
@@ -229,11 +233,15 @@ class PubSubQueueTests extends TestCase
                         return false;
                     }
 
-                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== $delay_timestamp) {
+                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== (string) $delay_timestamp) {
                         return false;
                     }
 
-                    if (! isset($message['attributes']['foo']) || $message['attributes']['foo'] != $options['foo']) {
+                    if (! isset($message['attributes']['foo']) || $message['attributes']['foo'] !== $options['foo']) {
+                        return false;
+                    }
+
+                    if (! isset($message['attributes']['numericValue']) || $message['attributes']['numericValue'] !== (string) $options['numericValue']) {
                         return false;
                     }
 
