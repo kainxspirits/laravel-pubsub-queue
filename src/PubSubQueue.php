@@ -117,7 +117,7 @@ class PubSubQueue extends Queue implements QueueContract
         return $this->pushRaw(
             $this->createPayload($job, $this->getQueue($queue), $data),
             $queue,
-            ['available_at' => $this->availableAt($delay)]
+            ['available_at' => (string) $this->availableAt($delay)]
         );
     }
 
@@ -205,7 +205,7 @@ class PubSubQueue extends Queue implements QueueContract
         $subscription->acknowledge($message);
 
         $options = array_merge([
-            'available_at' => $this->availableAt($delay),
+            'available_at' => (string) $this->availableAt($delay),
         ], $options);
 
         return $topic->publish([

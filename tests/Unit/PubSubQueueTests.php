@@ -107,7 +107,7 @@ class PubSubQueueTests extends TestCase
                 $this->isType('string'),
                 $this->anything(),
                 $this->callback(function ($options) use ($delay_timestamp) {
-                    if (! isset($options['available_at']) || $options['available_at'] !== $delay_timestamp) {
+                    if (! isset($options['available_at']) || $options['available_at'] !== (string) $delay_timestamp) {
                         return false;
                     }
 
@@ -229,7 +229,7 @@ class PubSubQueueTests extends TestCase
                         return false;
                     }
 
-                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== $delay_timestamp) {
+                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== (string) $delay_timestamp) {
                         return false;
                     }
 
