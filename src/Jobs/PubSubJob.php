@@ -101,7 +101,7 @@ class PubSubJob extends Job implements JobContract
         $this->pubsub->acknowledgeAndPublish(
             $this->job,
             $this->queue,
-            ['attempts' => $attempts],
+            ['attempts' => (string) $attempts],
             $delay
         );
     }

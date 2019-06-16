@@ -91,6 +91,38 @@ class PubSubQueueTests extends TestCase
         $this->assertEquals($this->result, $queue->pushRaw($payload));
     }
 
+    public function testPushRawOptionsOnlyAcceptKeyValueStrings()
+    {
+        $this->expectException(\UnexpectedValueException::class);
+
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+            ->setConstructorArgs([$this->client, 'default'])
+            ->setMethods(['getTopic', 'subscribeToTopic'])
+            ->getMock();
+
+        $this->topic->method('publish')
+            ->willReturn($this->result);
+
+        $queue->method('getTopic')
+            ->willReturn($this->topic);
+
+        $queue->method('subscribeToTopic')
+            ->willReturn($this->subscription);
+
+        $payload = json_encode(['id' => $this->result]);
+
+        $options = [
+            'integer' => 42,
+            'array' => [
+                'foo' => 'bar',
+            ],
+            1 => 'wrong key',
+            'object' => new \StdClass,
+        ];
+
+        $queue->pushRaw($payload, '', $options);
+    }
+
     public function testLater()
     {
         $job = 'test';
@@ -107,6 +139,16 @@ class PubSubQueueTests extends TestCase
                 $this->isType('string'),
                 $this->anything(),
                 $this->callback(function ($options) use ($delay_timestamp) {
+                    if (! is_array($options)) {
+                        return false;
+                    }
+
+                    foreach ($options as $key => $option) {
+                        if (! is_string($option) || ! is_string($key)) {
+                            return false;
+                        }
+                    }
+
                     if (! isset($options['available_at']) || $options['available_at'] !== (string) $delay_timestamp) {
                         return false;
                     }
@@ -225,8 +267,14 @@ class PubSubQueueTests extends TestCase
             ->willReturn($this->result)
             ->with(
                 $this->callback(function ($message) use ($options, $delay_timestamp) {
-                    if (! isset($message['attributes'])) {
+                    if (! isset($message['attributes']) || ! is_array($message['attributes'])) {
                         return false;
+                    }
+
+                    foreach ($message['attributes'] as $key => $attribute) {
+                        if (! is_string($attribute) || ! is_string($key)) {
+                            return false;
+                        }
                     }
 
                     if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== (string) $delay_timestamp) {
@@ -238,8 +286,52 @@ class PubSubQueueTests extends TestCase
                     }
 
                     return true;
+                }),
+                $this->callback(function ($options) {
+                    if (! is_array($options)) {
+                        return false;
+                    }
+
+                    foreach ($options as $key => $option) {
+                        if (! is_string($option) || ! is_string($key)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 })
             );
+
+        $this->queue->acknowledgeAndPublish($this->message, 'test', $options, $delay);
+    }
+
+    public function testAcknowledgeAndPublishOptionsOnlyAcceptString()
+    {
+        $this->expectException(\UnexpectedValueException::class);
+
+        $delay = 60;
+        $delay_timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
+
+        $this->topic->method('subscription')
+            ->willReturn($this->subscription);
+
+        $this->queue->method('getTopic')
+            ->willReturn($this->topic);
+
+        $this->queue->method('availableAt')
+            ->willReturn($delay_timestamp);
+
+        $this->topic->method('publish')
+            ->willReturn($this->result);
+
+        $options = [
+            'integer' => 42,
+            'array' => [
+                'foo' => 'bar',
+            ],
+            1 => 'wrong key',
+            'object' => new \StdClass,
+        ];
 
         $this->queue->acknowledgeAndPublish($this->message, 'test', $options, $delay);
     }

@@ -87,7 +87,24 @@ class PubSubJobTests extends TestCase
     public function testReleaseAcknowledgeAndPublish()
     {
         $this->queue->expects($this->once())
-            ->method('acknowledgeAndPublish');
+            ->method('acknowledgeAndPublish')
+            ->with(
+                $this->anything(),
+                $this->anything(),
+                $this->callback(function ($options) {
+                    if (! is_array($options)) {
+                        return false;
+                    }
+
+                    foreach ($options as $key => $option) {
+                        if (! is_string($option) || ! is_string($key)) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                })
+            );
 
         $this->job->release();
     }
