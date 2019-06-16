@@ -92,7 +92,7 @@ class PubSubQueue extends Queue implements QueueContract
         $publish = ['data' => base64_encode($payload)];
 
         if (! empty($options)) {
-            $publish['attributes'] = $options;
+            $publish['attributes'] = $this->validateMessageAttributes($options);
         }
 
         $topic->publish($publish);
@@ -206,7 +206,7 @@ class PubSubQueue extends Queue implements QueueContract
 
         $options = array_merge([
             'available_at' => (string) $this->availableAt($delay),
-        ], $options);
+        ], $this->validateMessageAttributes($options));
 
         return $topic->publish([
             'data' => $message->data(),
@@ -227,6 +227,32 @@ class PubSubQueue extends Queue implements QueueContract
         return array_merge(parent::createPayloadArray($job, $this->getQueue($queue), $data), [
             'id' => $this->getRandomId(),
         ]);
+    }
+
+    /**
+     * Check if the attributes array only contains key-values
+     * pairs made of strings.
+     *
+     * @param  array $attributes
+     *
+     * @throws \UnexpectedValueException
+     * @return array
+     */
+    private function validateMessageAttributes($attributes) : array
+    {
+        $attributes_values = array_filter($attributes, 'is_string');
+
+        if (count($attributes_values) !== count($attributes)) {
+            throw new \UnexpectedValueException('PubSubMessage attributes only accept key-value pairs and all values must be string.');
+        }
+
+        $attributes_keys = array_filter(array_keys($attributes), 'is_string');
+
+        if (count($attributes_keys) !== count(array_keys($attributes))) {
+            throw new \UnexpectedValueException('PubSubMessage attributes only accept key-value pairs and all keys must be string.');
+        }
+
+        return $attributes;
     }
 
     /**
