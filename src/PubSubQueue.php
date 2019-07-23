@@ -34,16 +34,32 @@ class PubSubQueue extends Queue implements QueueContract
     protected $subscriber;
 
     /**
+     * Default acknowledge deadline, when popping a job from the queue.
+     * 
+     * @var int
+     */
+    protected $acknowledgeDeadline;
+
+    /**
+     * The timeout to keep trying to pull from the PubSub subscription.
+     * 
+     * @var int
+     */
+    protected $pullTimeout;
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber')
+    public function __construct(PubSubClient $pubsub, $default, $config)
     {
-        $this->pubsub = $pubsub;
-        $this->default = $default;
-        $this->subscriber = $subscriber;
+        $this->pubsub              = $pubsub;
+        $this->default             = $default;
+        $this->subscriber          = $config['subscriber'] ?? 'subscriber';
+        $this->pullTimeout         = $config['pull_timeout'] ?? 0;
+        $this->acknowledgeDeadline = $config['acknowledge_deadline'] ?? 60;
     }
 
     /**
@@ -136,12 +152,17 @@ class PubSubQueue extends Queue implements QueueContract
         }
 
         $subscription = $topic->subscription($this->getSubscriberName());
-        $messages = $subscription->pull([
-            'returnImmediately' => true,
-            'maxMessages' => 1,
-        ]);
-
-        if (! empty($messages) && count($messages) > 0) {
+        do {
+            $messages = $subscription->pull([
+                'returnImmediately' => true,
+                'maxMessages'       => 1,
+            ]);
+            if ($this->pullTimeout > 0) {
+                sleep(1);
+            }
+        } while(($this->pullTimeout-- > 0) && (count($messages) <= 0));
+        if (count($messages) > 0) {
+            $subscription->modifyAckDeadline($messages[0], $this->acknowledgeDeadline);
             return new PubSubJob(
                 $this->container,
                 $this,
