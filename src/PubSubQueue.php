@@ -53,7 +53,7 @@ class PubSubQueue extends Queue implements QueueContract
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
      */
-    public function __construct(PubSubClient $pubsub, $default, $config)
+    public function __construct(PubSubClient $pubsub, $default, $config = [])
     {
         $this->pubsub              = $pubsub;
         $this->default             = $default;
@@ -61,7 +61,14 @@ class PubSubQueue extends Queue implements QueueContract
         $this->pullTimeout         = $config['pull_timeout'] ?? 0;
         $this->acknowledgeDeadline = $config['acknowledge_deadline'] ?? 60;
     }
-
+    
+    /**
+     * @return int
+     */
+    public function getAcknowledgeDeadline(): int
+    {
+        return $this->acknowledgeDeadline;
+    }
     /**
      * Get the size of the queue.
      * PubSubClient have no method to retrieve the size of the queue.
@@ -162,7 +169,7 @@ class PubSubQueue extends Queue implements QueueContract
             }
         } while(($this->pullTimeout-- > 0) && (count($messages) <= 0));
         if (count($messages) > 0) {
-            $subscription->modifyAckDeadline($messages[0], $this->acknowledgeDeadline);
+            $subscription->modifyAckDeadline($messages[0], $this->getAcknowledgeDeadline());
             return new PubSubJob(
                 $this->container,
                 $this,

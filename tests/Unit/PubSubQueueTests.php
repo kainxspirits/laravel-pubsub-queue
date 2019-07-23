@@ -179,6 +179,79 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($this->queue->pop('test') instanceof PubSubJob);
     }
 
+    public function testPopWhenNoJobAvailablePullTimeout()
+    {
+
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+                      ->setConstructorArgs([$this->client, 'default', ['pull_timeout' => 1]])
+                      ->setMethods(['getTopic'])
+                      ->getMock();
+
+        $this->subscription->method('pull')
+                           ->willReturn([]);
+
+        $this->topic->method('subscription')
+                    ->willReturn($this->subscription);
+
+        $this->topic->method('exists')
+                    ->willReturn(true);
+
+        $queue->method('getTopic')
+              ->willReturn($this->topic);
+
+        $this->assertTrue(is_null($queue->pop('test')));
+    }
+
+    public function testGetSize()
+    {
+        $this->assertEquals(0, $this->queue->size());
+    }
+
+    public function testPopWithAcknowledgeDeadline()
+    {
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+                      ->setConstructorArgs([$this->client, 'default', ['acknowledge_deadline' => 30]])
+                      ->setMethods(['getTopic'])
+                      ->getMock();
+
+        $this->subscription->method('pull')
+                           ->willReturn([]);
+
+        $this->topic->method('subscription')
+                    ->willReturn($this->subscription);
+
+        $this->topic->method('exists')
+                    ->willReturn(true);
+
+        $queue->method('getTopic')
+                    ->willReturn($this->topic);
+        $this->assertEquals(30, $queue->getAcknowledgeDeadline());
+        $this->assertTrue(is_null($queue->pop('test')));
+    }
+
+    public function testPopWithoutAcknowledgeDeadline()
+    {
+
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+                      ->setConstructorArgs([$this->client, 'default'])
+                      ->setMethods(['getTopic'])
+                      ->getMock();
+
+        $this->subscription->method('pull')
+                           ->willReturn([]);
+
+        $this->topic->method('subscription')
+                    ->willReturn($this->subscription);
+
+        $this->topic->method('exists')
+                    ->willReturn(true);
+
+        $queue->method('getTopic')
+              ->willReturn($this->topic);
+        $this->assertEquals(60, $queue->getAcknowledgeDeadline());
+        $this->assertTrue(is_null($queue->pop('test')));
+    }
+
     public function testPopWhenNoJobAvailable()
     {
         $this->subscription->method('pull')
@@ -410,7 +483,7 @@ class PubSubQueueTests extends TestCase
     public function testGetSubscriberName()
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default', 'test-subscriber'])
+            ->setConstructorArgs([$this->client, 'default', ['subscriber' => 'test-subscriber']])
             ->setMethods()
             ->getMock();
 

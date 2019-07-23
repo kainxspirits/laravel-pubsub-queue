@@ -36,6 +36,11 @@ You can check [Google Cloud PubSub client](http://googleapis.github.io/google-cl
 ],
 ```
 
+#### Additional configuration settings: 
+
+`acknowledge_deadline` The number of seconds, you want to set the acknowledge deadline to. If you run more then one worker for a configured queue. This *must* match or exceed the highest value of `--time-out` flag on all the workers for the configured queue.
+
+`pull_timeout` Because PubSub can return 0 messages, even when there messages in the queue. You can set a timeout in seconds. This keeps the driver observing the PubSub subscription for the given time. You should only need this if you run a worker with the `--exit-on-empty` flag.
 ## Testing
 
 You can run the tests with :
