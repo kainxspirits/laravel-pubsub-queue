@@ -181,7 +181,6 @@ class PubSubQueueTests extends TestCase
 
     public function testPopWhenNoJobAvailablePullTimeout()
     {
-
         $queue = $this->getMockBuilder(PubSubQueue::class)
                       ->setConstructorArgs([$this->client, 'default', ['pull_timeout' => 1]])
                       ->setMethods(['getTopic'])
@@ -231,7 +230,6 @@ class PubSubQueueTests extends TestCase
 
     public function testPopWithoutAcknowledgeDeadline()
     {
-
         $queue = $this->getMockBuilder(PubSubQueue::class)
                       ->setConstructorArgs([$this->client, 'default'])
                       ->setMethods(['getTopic'])

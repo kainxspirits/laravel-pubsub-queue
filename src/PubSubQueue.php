@@ -35,14 +35,14 @@ class PubSubQueue extends Queue implements QueueContract
 
     /**
      * Default acknowledge deadline, when popping a job from the queue.
-     * 
+     *
      * @var int
      */
     protected $acknowledgeDeadline;
 
     /**
      * The timeout to keep trying to pull from the PubSub subscription.
-     * 
+     *
      * @var int
      */
     protected $pullTimeout;
@@ -55,13 +55,13 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function __construct(PubSubClient $pubsub, $default, $config = [])
     {
-        $this->pubsub              = $pubsub;
-        $this->default             = $default;
-        $this->subscriber          = $config['subscriber'] ?? 'subscriber';
-        $this->pullTimeout         = $config['pull_timeout'] ?? 0;
+        $this->pubsub = $pubsub;
+        $this->default = $default;
+        $this->subscriber = $config['subscriber'] ?? 'subscriber';
+        $this->pullTimeout = $config['pull_timeout'] ?? 0;
         $this->acknowledgeDeadline = $config['acknowledge_deadline'] ?? 60;
     }
-    
+
     /**
      * @return int
      */
@@ -167,9 +167,10 @@ class PubSubQueue extends Queue implements QueueContract
             if ($this->pullTimeout > 0) {
                 sleep(1);
             }
-        } while(($this->pullTimeout-- > 0) && (count($messages) <= 0));
+        } while (($this->pullTimeout-- > 0) && (count($messages) <= 0));
         if (count($messages) > 0) {
             $subscription->modifyAckDeadline($messages[0], $this->getAcknowledgeDeadline());
+
             return new PubSubJob(
                 $this->container,
                 $this,
