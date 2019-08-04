@@ -79,8 +79,7 @@ class PubSubJobTests extends TestCase
     public function testReleaseAndPublish()
     {
         $this->queue->expects($this->once())
-<<<<<<< HEAD
-            ->method('acknowledgeAndPublish')
+            ->method('republish')
             ->with(
                 $this->anything(),
                 $this->anything(),
@@ -98,9 +97,6 @@ class PubSubJobTests extends TestCase
                     return true;
                 })
             );
-=======
-            ->method('republish');
->>>>>>> 4b21995a71098ea938981fce91c28ae3cce9fe2f
 
         $this->job->release();
     }
