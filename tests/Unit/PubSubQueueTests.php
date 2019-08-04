@@ -305,7 +305,7 @@ class PubSubQueueTests extends TestCase
         $this->queue->republish($this->message, 'test', $options, $delay);
     }
 
-    public function testAcknowledgeAndPublishOptionsOnlyAcceptString()
+    public function testRepublishOptionsOnlyAcceptString()
     {
         $this->expectException(\UnexpectedValueException::class);
 
@@ -333,7 +333,7 @@ class PubSubQueueTests extends TestCase
             'object' => new \StdClass,
         ];
 
-        $this->queue->acknowledgeAndPublish($this->message, 'test', $options, $delay);
+        $this->queue->republish($this->message, 'test', $options, $delay);
     }
 
     public function testGetTopic()
