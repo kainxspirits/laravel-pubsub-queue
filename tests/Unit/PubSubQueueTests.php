@@ -162,6 +162,9 @@ class PubSubQueueTests extends TestCase
 
     public function testPopWhenJobsAvailable()
     {
+        $this->subscription->expects($this->once())
+            ->method('acknowledge');
+
         $this->subscription->method('pull')
             ->willReturn([$this->message]);
 
@@ -181,6 +184,9 @@ class PubSubQueueTests extends TestCase
 
     public function testPopWhenNoJobAvailable()
     {
+        $this->subscription->expects($this->exactly(0))
+            ->method('acknowledge');
+
         $this->subscription->method('pull')
             ->willReturn([]);
 
@@ -244,17 +250,11 @@ class PubSubQueueTests extends TestCase
         $this->queue->acknowledge($this->message);
     }
 
-    public function testAcknowledgeAndPublish()
+    public function testRepublish()
     {
         $options = ['foo' => 'bar'];
         $delay = 60;
         $delay_timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
-
-        $this->subscription->expects($this->once())
-            ->method('acknowledge');
-
-        $this->topic->method('subscription')
-            ->willReturn($this->subscription);
 
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
@@ -302,7 +302,7 @@ class PubSubQueueTests extends TestCase
                 })
             );
 
-        $this->queue->acknowledgeAndPublish($this->message, 'test', $options, $delay);
+        $this->queue->republish($this->message, 'test', $options, $delay);
     }
 
     public function testAcknowledgeAndPublishOptionsOnlyAcceptString()
