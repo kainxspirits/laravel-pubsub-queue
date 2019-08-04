@@ -65,14 +65,6 @@ class PubSubJobTests extends TestCase
         $this->assertEquals($this->job->getRawBody(), $this->messageData);
     }
 
-    public function testDeleteAcknowledge()
-    {
-        $this->queue->expects($this->once())
-            ->method('acknowledge');
-
-        $this->job->delete();
-    }
-
     public function testDeleteMethodSetDeletedProperty()
     {
         $this->job->delete();
@@ -84,10 +76,10 @@ class PubSubJobTests extends TestCase
         $this->assertTrue(is_int($this->job->attempts()));
     }
 
-    public function testReleaseAcknowledgeAndPublish()
+    public function testReleaseAndPublish()
     {
         $this->queue->expects($this->once())
-            ->method('acknowledgeAndPublish')
+            ->method('republish')
             ->with(
                 $this->anything(),
                 $this->anything(),
