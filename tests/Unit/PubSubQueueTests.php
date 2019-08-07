@@ -29,9 +29,19 @@ class PubSubQueueTests extends TestCase
         $this->client = $this->createMock(PubSubClient::class);
         $this->subscription = $this->createMock(Subscription::class);
         $this->message = $this->createMock(Message::class);
-
+        $this->config = [
+            'queue' => 'test',
+            'project_id' => 'the-project-id',
+            'retries' => 1,
+            'request_timeout' => 60,
+            'subscribers' => [
+                'sub1' => 'topic1',
+                'sub2' => 'topic2',
+                'sub3' => 'topic1',
+            ]
+        ];
         $this->queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->client, 'default', $this->config])
             ->setMethods([
                 'pushRaw',
                 'getTopic',
@@ -68,7 +78,7 @@ class PubSubQueueTests extends TestCase
     public function testPushRaw()
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->client, 'default', $this->config])
             ->setMethods(['getTopic', 'subscribeToTopic'])
             ->getMock();
 
@@ -240,7 +250,7 @@ class PubSubQueueTests extends TestCase
             ->willReturn($this->topic);
 
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->client, 'default', $this->config])
             ->setMethods()
             ->getMock();
 
@@ -260,7 +270,7 @@ class PubSubQueueTests extends TestCase
             ->willReturn($this->topic);
 
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->client, 'default', $this->config])
             ->setMethods()
             ->getMock();
 
@@ -279,7 +289,7 @@ class PubSubQueueTests extends TestCase
             ->willReturn(false);
 
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->client, 'default', $this->config])
             ->setMethods()
             ->getMock();
 
@@ -295,7 +305,7 @@ class PubSubQueueTests extends TestCase
             ->willReturn(true);
 
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->client, 'default', $this->config])
             ->setMethods()
             ->getMock();
 

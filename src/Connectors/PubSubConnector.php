@@ -24,10 +24,10 @@ class PubSubConnector implements ConnectorInterface
     public function connect(array $config)
     {
         $gcp_config = $this->transformConfig($config);
-
         return new PubSubQueue(
             new PubSubClient($gcp_config),
-            $config['queue'] ?? $this->default_queue
+            $config['queue'] ?? $this->default_queue,
+            $gcp_config
         );
     }
 
