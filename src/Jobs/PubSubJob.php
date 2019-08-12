@@ -2,11 +2,11 @@
 
 namespace PubSub\PubSubQueue\Jobs;
 
-use Illuminate\Queue\Jobs\Job;
 use Google\Cloud\PubSub\Message;
 use Illuminate\Container\Container;
-use PubSub\PubSubQueue\PubSubQueue;
 use Illuminate\Contracts\Queue\Job as JobContract;
+use Illuminate\Queue\Jobs\Job;
+use PubSub\PubSubQueue\PubSubQueue;
 
 class PubSubJob extends Job implements JobContract
 {
@@ -25,6 +25,13 @@ class PubSubJob extends Job implements JobContract
     protected $job;
 
     /**
+     * subscriber name
+     *
+     * @var string
+     */
+    protected $subscriber;
+
+    /**
      * Create a new job instance.
      *
      * @param \Illuminate\Container\Container $container
@@ -33,14 +40,14 @@ class PubSubJob extends Job implements JobContract
      * @param string       $connectionName
      * @param string       $queue
      */
-    public function __construct(Container $container, PubSubQueue $pubsub, Message $job, $connectionName, $queue)
+    public function __construct(Container $container, PubSubQueue $pubsub, Message $job, $connectionName, $queue, $subscriber = null)
     {
         $this->pubsub = $pubsub;
         $this->job = $job;
         $this->queue = $queue;
         $this->container = $container;
         $this->connectionName = $connectionName;
-
+        $this->subscriber = $subscriber;
         $this->decoded = $this->payload();
     }
 

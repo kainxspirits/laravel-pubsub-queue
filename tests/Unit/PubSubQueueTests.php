@@ -312,11 +312,6 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
     }
 
-    public function testGetSubscriberName()
-    {
-        $this->assertTrue(is_string($this->queue->getSubscriberName()));
-    }
-
     public function testGetPubSub()
     {
         $this->assertTrue($this->queue->getPubSub() instanceof PubSubClient);
