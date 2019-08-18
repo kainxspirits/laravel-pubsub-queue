@@ -141,7 +141,6 @@ class PubSubQueue extends Queue implements QueueContract
             'maxMessages' => 1,
         ]);
 
-
         if (empty($messages) || count($messages) < 1) {
             return;
         }
