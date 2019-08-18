@@ -141,17 +141,25 @@ class PubSubQueue extends Queue implements QueueContract
             'maxMessages' => 1,
         ]);
 
-        if (! empty($messages) && count($messages) > 0) {
-            $this->acknowledge($messages[0], $queue);
 
-            return new PubSubJob(
-                $this->container,
-                $this,
-                $messages[0],
-                $this->connectionName,
-                $this->getQueue($queue)
-            );
+        if (empty($messages) || count($messages) < 1) {
+            return null;
         }
+
+        $available_at = $messages[0]->attribute('available_at');
+        if ($available_at && $available_at > time()) {
+            return null;
+        }
+
+        $this->acknowledge($messages[0], $queue);
+
+        return new PubSubJob(
+            $this->container,
+            $this,
+            $messages[0],
+            $this->connectionName,
+            $this->getQueue($queue)
+        );
     }
 
     /**
