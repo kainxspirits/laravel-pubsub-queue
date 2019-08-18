@@ -143,12 +143,12 @@ class PubSubQueue extends Queue implements QueueContract
 
 
         if (empty($messages) || count($messages) < 1) {
-            return null;
+            return;
         }
 
         $available_at = $messages[0]->attribute('available_at');
         if ($available_at && $available_at > time()) {
-            return null;
+            return;
         }
 
         $this->acknowledge($messages[0], $queue);
