@@ -213,6 +213,31 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue(is_null($this->queue->pop('test')));
     }
 
+    public function testPopWhenJobDelayed()
+    {
+        $delay = 60;
+        $timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
+
+        $message = $this->message->method('attribute')
+            ->willReturn($timestamp);
+
+        $this->subscription->method('pull')
+            ->willReturn([$this->message]);
+
+        $this->topic->method('subscription')
+            ->willReturn($this->subscription);
+
+        $this->topic->method('exists')
+            ->willReturn(true);
+
+        $this->queue->method('getTopic')
+            ->willReturn($this->topic);
+
+        $this->queue->setContainer($this->createMock(Container::class));
+
+        $this->assertTrue(is_null($this->queue->pop('test')));
+    }
+
     public function testBulk()
     {
         $jobs = ['test'];
