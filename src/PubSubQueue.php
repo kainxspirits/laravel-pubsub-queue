@@ -198,13 +198,16 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function acknowledgeAndPublish(Message $message, $queue = null, $options = [], $delay = 0)
     {
+        if (isset($options['attempts'])) {
+            $options['attempts'] = (string) $options['attempts'];
+        }
         $topic = $this->getTopic($this->getQueue($queue));
-        $subscription = $topic->subscription($queue);
+        $subscription = $topic->subscription($this->subscriber);
 
         $subscription->acknowledge($message);
 
         $options = array_merge([
-            'available_at' => $this->availableAt($delay),
+            'available_at' => (string) $this->availableAt($delay),
         ], $options);
 
         return $topic->publish([
