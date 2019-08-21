@@ -68,7 +68,32 @@ class PubSubJob extends Job implements JobContract
      */
     public function getRawBody()
     {
+        if ($this->pubsub->checkHandler($this->subscriber)) {
+            return $this->modifyPayload(
+                $this->job->data(),
+                $this->pubsub->getHandler($this->subscriber)
+            );
+        }
         return base64_decode($this->job->data());
+    }
+
+    /**
+     * @param string|array $payload
+     * @param string $class
+     * @return array
+     */
+    private function modifyPayload($payload, $class)
+    {
+        if (!is_array($payload)) {
+            $payload = json_decode($payload, true);
+        }
+
+        $body = [
+            'job' => $class . '@handle',
+            'data' => $payload,
+        ];
+
+        return json_encode($body);
     }
 
     /**

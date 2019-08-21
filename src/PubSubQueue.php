@@ -64,11 +64,38 @@ class PubSubQueue extends Queue implements QueueContract
     }
 
     /**
+     * Check whether handler exist
+     *
+     * @param  string  $queue
+     *
+     * @return bool
+     */
+    public function checkHandler($subscriber)
+    {
+        if (array_key_exists('plain_handlers', $this->config)) {
+            return array_key_exists($subscriber, $this->config['plain_handlers']);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether handler exist
+     *
+     * @param  string  $queue
+     *
+     * @return string
+     */
+    public function getHandler($subscriber)
+    {
+        return $this->config['plain_handlers'][$subscriber];
+    }
+
+    /**
      * Push a new job onto the queue.
      *
      * @param  string|object  $job
      * @param  mixed   $data
-     * @param  string  $queue
+     * @param  string  $subscriber
      *
      * @return mixed
      */
@@ -81,7 +108,7 @@ class PubSubQueue extends Queue implements QueueContract
      * Push a raw payload onto the queue.
      *
      * @param  string  $payload
-     * @param  string  $queue
+     * @param  string  $subscriber
      * @param  array   $options
      *
      * @return array
