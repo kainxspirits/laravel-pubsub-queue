@@ -72,8 +72,8 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function checkHandler($subscriber)
     {
-        if (array_key_exists('plain_handlers', $this->config)) {
-            return array_key_exists($subscriber, $this->config['plain_handlers']);
+        if (array_key_exists('plainHandlers', $this->config)) {
+            return array_key_exists($subscriber, $this->config['plainHandlers']);
         }
         return false;
     }
@@ -87,7 +87,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function getHandler($subscriber)
     {
-        return $this->config['plain_handlers'][$subscriber];
+        return $this->config['plainHandlers'][$subscriber];
     }
 
     /**
