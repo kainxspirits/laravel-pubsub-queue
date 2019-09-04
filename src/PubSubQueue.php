@@ -145,7 +145,7 @@ class PubSubQueue extends Queue implements QueueContract
         return $this->pushRaw(
             $this->createPayload($job, $data),
             $subscriber,
-            ['available_at' => $this->availableAt($delay)]
+            ['available_at' => (string) $this->availableAt($delay)]
         );
     }
 
