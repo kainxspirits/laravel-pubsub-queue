@@ -68,7 +68,6 @@ class PubSubQueueTests extends TestCase
             ->willReturn($this->result)
             ->with($this->callback(function ($payload) use ($job, $data) {
                 $decoded_payload = json_decode(base64_decode($payload), true);
-
                 return $decoded_payload['data'] === $data && $decoded_payload['job'] === $job;
             }));
 
@@ -101,6 +100,7 @@ class PubSubQueueTests extends TestCase
         $job = 'test';
         $delay = 60;
         $delay_timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
+        $delay_timestamp_string = (string) $delay_timestamp;
 
         $this->queue->method('availableAt')
             ->willReturn($delay_timestamp);
@@ -111,8 +111,8 @@ class PubSubQueueTests extends TestCase
             ->with(
                 $this->isType('string'),
                 $this->anything(),
-                $this->callback(function ($options) use ($delay_timestamp) {
-                    if (! isset($options['available_at']) || $options['available_at'] !== $delay_timestamp) {
+                $this->callback(function ($options) use ($delay_timestamp_string) {
+                    if (! isset($options['available_at']) || $options['available_at'] !== $delay_timestamp_string) {
                         return false;
                     }
 
@@ -204,6 +204,7 @@ class PubSubQueueTests extends TestCase
         $options = ['foo' => 'bar'];
         $delay = 60;
         $delay_timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
+        $delay_timestamp_string = (string) $delay_timestamp;
 
         $this->subscription->expects($this->once())
             ->method('acknowledge');
@@ -221,12 +222,12 @@ class PubSubQueueTests extends TestCase
             ->method('publish')
             ->willReturn($this->result)
             ->with(
-                $this->callback(function ($message) use ($options, $delay_timestamp) {
+                $this->callback(function ($message) use ($options, $delay_timestamp_string) {
                     if (! isset($message['attributes'])) {
                         return false;
                     }
 
-                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== $delay_timestamp) {
+                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== $delay_timestamp_string) {
                         return false;
                     }
 

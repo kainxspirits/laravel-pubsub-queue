@@ -95,13 +95,13 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @param  string|object  $job
      * @param  mixed   $data
-     * @param  string  $subscriber
+     * @param  string  $queue
      *
      * @return mixed
      */
-    public function push($job, $data = '', $subscriber = null)
+    public function push($job, $data = '', $queue = null)
     {
-        return $this->pushRaw($this->createPayload($job, $data), $subscriber);
+        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue);
     }
 
     /**
@@ -253,9 +253,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @throws \Illuminate\Queue\InvalidPayloadException
      */
-    protected function createPayload($job, $data = '')
+    protected function createPayload($job, $queue, $data = '')
     {
-        $payload = parent::createPayload($job, $data);
+        $payload = parent::createPayload($job, $queue, $data);
 
         return base64_encode($payload);
     }
@@ -268,9 +268,9 @@ class PubSubQueue extends Queue implements QueueContract
      * @param  mixed  $data
      * @return array
      */
-    protected function createPayloadArray($job, $data = '')
+    protected function createPayloadArray($job, $queue, $data = '')
     {
-        return array_merge(parent::createPayloadArray($job, $data), [
+        return array_merge(parent::createPayloadArray($job, $queue, $data), [
             'id' => $this->getRandomId(),
         ]);
     }
