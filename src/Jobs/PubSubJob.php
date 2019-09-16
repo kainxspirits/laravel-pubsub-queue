@@ -40,11 +40,11 @@ class PubSubJob extends Job implements JobContract
      * @param string       $connectionName
      * @param string       $queue
      */
-    public function __construct(Container $container, PubSubQueue $pubsub, Message $job, $connectionName, $queue, $subscriber = null)
+    public function __construct(Container $container, PubSubQueue $pubsub, Message $job, $connectionName, $subscriberName, $subscriber = null)
     {
         $this->pubsub = $pubsub;
         $this->job = $job;
-        $this->queue = $queue;
+        $this->queue = $subscriberName;
         $this->container = $container;
         $this->connectionName = $connectionName;
         $this->subscriber = $subscriber;

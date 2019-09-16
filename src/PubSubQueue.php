@@ -99,9 +99,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return mixed
      */
-    public function push($job, $data = '', $topicName = null)
+    public function push($job, $data = '', $subscriberName = null)
     {
-        return $this->pushRaw($this->createPayload($job, $topicName, $data), $topicName);
+        return $this->pushRaw($this->createPayload($job, $subscriberName, $data), $subscriberName);
     }
 
     /**
@@ -113,9 +113,11 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return array
      */
-    public function pushRaw($payload, $topicName = null, array $options = [])
+    public function pushRaw($payload, $subscriberName = null, array $options = [])
     {
-        $topic = $this->getTopic($topicName, true);
+        $payload = base64_encode($payload);
+
+        $topic = $this->getTopicUsingSubscriber($subscriberName);
         $publish = ['data' => $payload];
 
         if (!empty($options)) {
@@ -170,7 +172,7 @@ class PubSubQueue extends Queue implements QueueContract
                 $this,
                 $messages[0],
                 $this->connectionName,
-                $this->getQueue($subscriber),
+                $subscriber,
                 $subscriber
             );
         }
@@ -218,12 +220,12 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return mixed
      */
-    public function acknowledgeAndPublish(Message $message, $topic = null, $options = [], $delay = 0)
+    public function acknowledgeAndPublish(Message $message, $subscriberName = null, $options = [], $delay = 0)
     {
         if (isset($options['attempts'])) {
             $options['attempts'] = (string) $options['attempts'];
         }
-        $topic = $this->getTopic($topic);
+        $topic = $this->getTopicUsingSubscriber($subscriberName);
 
         $subscription = $topic->subscription($this->subscriber);
 
@@ -251,8 +253,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     protected function createPayload($job, $topicName, $data = '')
     {
-        $payload = parent::createPayload($job, $topicName, $data);
-        return base64_encode($payload);
+        return parent::createPayload($job, $topicName, $data);
     }
 
     /**
