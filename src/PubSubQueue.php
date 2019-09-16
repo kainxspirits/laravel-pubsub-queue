@@ -99,9 +99,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return mixed
      */
-    public function push($job, $data = '', $queue = null)
+    public function push($job, $data = '', $topicName = null)
     {
-        return $this->pushRaw($this->createPayload($job, $queue, $data), $queue);
+        return $this->pushRaw($this->createPayload($job, $topicName, $data), $topicName);
     }
 
     /**
@@ -113,10 +113,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return array
      */
-    public function pushRaw($payload, $subscriber = null, array $options = [])
+    public function pushRaw($payload, $topicName = null, array $options = [])
     {
-        $topic = $this->getTopic($subscriber, true);
-
+        $topic = $this->getTopic($topicName, true);
         $publish = ['data' => $payload];
 
         if (!empty($options)) {
@@ -159,7 +158,6 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $this->subscriber = $subscriber;
         $topic = $this->getTopic($this->getQueue($subscriber));
-
         $subscription = $topic->subscription($subscriber);
         $messages = $subscription->pull([
             'returnImmediately' => true,
@@ -220,12 +218,13 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return mixed
      */
-    public function acknowledgeAndPublish(Message $message, $queue = null, $options = [], $delay = 0)
+    public function acknowledgeAndPublish(Message $message, $topic = null, $options = [], $delay = 0)
     {
         if (isset($options['attempts'])) {
             $options['attempts'] = (string) $options['attempts'];
         }
-        $topic = $this->getTopic($this->getQueue($queue));
+        $topic = $this->getTopic($topic);
+
         $subscription = $topic->subscription($this->subscriber);
 
         $subscription->acknowledge($message);
@@ -250,10 +249,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @throws \Illuminate\Queue\InvalidPayloadException
      */
-    protected function createPayload($job, $queue, $data = '')
+    protected function createPayload($job, $topicName, $data = '')
     {
-        $payload = parent::createPayload($job, $queue, $data);
-
+        $payload = parent::createPayload($job, $topicName, $data);
         return base64_encode($payload);
     }
 
@@ -276,14 +274,27 @@ class PubSubQueue extends Queue implements QueueContract
      * Get the current topic.
      *
      * @param  string $queue
-     * @param  string $create
      *
      * @return \Google\Cloud\PubSub\Topic
      */
-    public function getTopic($queue, $create = false)
+    public function getTopic($queue)
     {
-        $queue = $this->getQueue($queue);
         $topic = $this->pubsub->topic($queue);
+
+        return $topic;
+    }
+
+    /**
+     * Get the current topic using subscriber.
+     *
+     * @param  string $queue
+     *
+     * @return \Google\Cloud\PubSub\Topic
+     */
+    public function getTopicUsingSubscriber($subscriberName)
+    {
+        $topicName = $this->getQueue($subscriberName);
+        $topic = $this->pubsub->topic($topicName);
 
         return $topic;
     }
