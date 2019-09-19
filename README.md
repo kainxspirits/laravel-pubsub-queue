@@ -1,22 +1,22 @@
 # Laravel PubSub Queue
 
-[![Travis](https://img.shields.io/travis/kainxspirits/laravel-pubsub-queue.svg)](https://github.com/kainxspirits/laravel-pubsub-queue)
+[![Travis](https://img.shields.io/travis/munir131/laravel-pubsub-queue/5.8?style=for-the-badge)](https://github.com/munir131/laravel-pubsub-queue)
 [![StyleCI](https://styleci.io/repos/131718560/shield)](https://styleci.io/repos/131718560)
 
-This package is a Laravel 5.7 queue driver that use the [Google PubSub](https://github.com/GoogleCloudPlatform/google-cloud-php-pubsub) service.
+This package is a Laravel 5.8 queue driver that use the [Google PubSub](https://github.com/GoogleCloudPlatform/google-cloud-php-pubsub) service.
 
 ## Installation
 
 You can easily install this package with [Composer](https://getcomposer.org) by running this command :
 
 ```bash
-composer require kainxspirits/laravel-pubsub-queue
+composer require munir131/laravel-pubsub-queue
 ```
 
 If you disabled package discovery, you can still manually register this package by adding the following line to the providers of your `config/app.php` file :
 
 ```php
-Kainxspirits\PubSubQueue\PubSubQueueServiceProvider::class,
+PubSub\PubSubQueue\PubSubQueueServiceProvider::class,
 ```
 
 ## Configuration
@@ -27,12 +27,22 @@ You can check [Google Cloud PubSub client](http://googlecloudplatform.github.io/
 
 ```php
 'pubsub' => [
-    'driver' => 'pubsub',
-    'queue' => env('PUBSUB_QUEUE', 'default'),
-    'project_id' => env('PUBSUB_PROJECT_ID', 'your-project-id'),
-    'retries' => 3,
-    'request_timeout' => 60
-],
+            'driver' => 'pubsub',
+            'queue' => env('JOB_PUB'),
+            'project_id' => env('PUBSUB_PROJECT_ID', 'your-project-id'),
+            'retries' => 5,
+            'request_timeout' => 60,
+            'keyFilePath' => env('PUBSUB_KEY_FILE', storage_path('Asyncro-978055.json')),
+            // Subscriber will be key and publisher will be value here
+            'subscribers' => [
+                'sub1' => 'topic1',
+                'sub2' => 'topic2',
+                'sub3' => 'topic2' // Multiple subscriber to single topic
+            ],
+            'plain_handlers' => [
+                'plain_sub' => App\Jobs\PlainClass::class // This one for non laravel format messages.
+            ],
+        ],
 ```
 
 ## Testing
