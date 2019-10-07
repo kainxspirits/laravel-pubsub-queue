@@ -3,16 +3,16 @@
 namespace PubSub\PubSubQueue\Tests\Unit;
 
 use Carbon\Carbon;
-use ReflectionClass;
-use Google\Cloud\PubSub\Topic;
-use PHPUnit\Framework\TestCase;
 use Google\Cloud\PubSub\Message;
-use Illuminate\Container\Container;
 use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\Subscription;
-use PubSub\PubSubQueue\PubSubQueue;
-use PubSub\PubSubQueue\Jobs\PubSubJob;
+use Google\Cloud\PubSub\Topic;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use PHPUnit\Framework\TestCase;
+use PubSub\PubSubQueue\Jobs\PubSubJob;
+use PubSub\PubSubQueue\PubSubQueue;
+use ReflectionClass;
 
 class PubSubQueueTests extends TestCase
 {
@@ -38,7 +38,7 @@ class PubSubQueueTests extends TestCase
                 'sub1' => 'topic1',
                 'sub2' => 'topic2',
                 'sub3' => 'topic1',
-            ]
+            ],
         ];
         $this->queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default', $this->config])
@@ -50,6 +50,7 @@ class PubSubQueueTests extends TestCase
                 'subscription',
                 'availableAt',
                 'subscribeToTopic',
+                'getQueue',
             ])->getMock();
     }
 
@@ -113,7 +114,7 @@ class PubSubQueueTests extends TestCase
                 $this->isType('string'),
                 $this->anything(),
                 $this->callback(function ($options) use ($delay_timestamp_string) {
-                    if (! isset($options['available_at']) || $options['available_at'] !== $delay_timestamp_string) {
+                    if (!isset($options['available_at']) || $options['available_at'] !== $delay_timestamp_string) {
                         return false;
                     }
 
@@ -224,15 +225,15 @@ class PubSubQueueTests extends TestCase
             ->willReturn($this->result)
             ->with(
                 $this->callback(function ($message) use ($options, $delay_timestamp_string) {
-                    if (! isset($message['attributes'])) {
+                    if (!isset($message['attributes'])) {
                         return false;
                     }
 
-                    if (! isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== $delay_timestamp_string) {
+                    if (!isset($message['attributes']['available_at']) || $message['attributes']['available_at'] !== $delay_timestamp_string) {
                         return false;
                     }
 
-                    if (! isset($message['attributes']['foo']) || $message['attributes']['foo'] != $options['foo']) {
+                    if (!isset($message['attributes']['foo']) || $message['attributes']['foo'] != $options['foo']) {
                         return false;
                     }
 
@@ -259,6 +260,32 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->getTopic('test') instanceof Topic);
     }
 
+    public function testGetTopicUsingSubscriber()
+    {
+        $this->client->method('topic')
+            ->willReturn($this->topic);
+
+        $this->queue->method('getQueue')
+            ->willReturn($this->topic);
+
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+            ->setConstructorArgs([$this->client, 'default', $this->config])
+            ->setMethods()
+            ->getMock();
+        $this->assertTrue($queue->getTopicUsingSubscriber('sub1') instanceof Topic);
+
+    }
+
+    public function testGetQueue()
+    {
+        $queue = $this->getMockBuilder(PubSubQueue::class)
+            ->setConstructorArgs([$this->client, 'default', $this->config])
+            ->setMethods()
+            ->getMock();
+
+        $this->assertTrue($queue->getQueue('sub1') === 'topic1');
+
+    }
     public function testSubscribtionIsCreated()
     {
         $this->topic->method('subscription')
@@ -298,4 +325,5 @@ class PubSubQueueTests extends TestCase
     {
         $this->assertTrue($this->queue->getPubSub() instanceof PubSubClient);
     }
+
 }
