@@ -2,15 +2,15 @@
 
 namespace Kainxspirits\PubSubQueue;
 
+use Google\Cloud\PubSub\Message;
+use Google\Cloud\PubSub\PubSubClient;
+use Google\Cloud\PubSub\Topic;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use Google\Cloud\PubSub\Topic;
-use Google\Cloud\PubSub\Message;
-use Google\Cloud\PubSub\PubSubClient;
 use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
-use Illuminate\Contracts\Queue\Queue as QueueContract;
-use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 class PubSubQueue extends Queue implements QueueContract
 {
@@ -287,7 +287,7 @@ class PubSubQueue extends Queue implements QueueContract
     public function getTopic($queue, $create = false)
     {
         $queue = $this->getQueue($queue);
-        $cacheKey = self::DEFAULT_TOPIC_CACHE_KEY_PREFIX . $queue;
+        $cacheKey = self::DEFAULT_TOPIC_CACHE_KEY_PREFIX.$queue;
         $topic = $this->pubsub->topic($queue);
 
         if ($this->cacheHasKey($cacheKey)) {
@@ -314,7 +314,7 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $subscriberName = $this->getSubscriberName();
         $subscription = $topic->subscription($subscriberName);
-        $cacheKey = self::DEFAULT_SUBSCRIPTION_CACHE_KEY . $subscriberName;
+        $cacheKey = self::DEFAULT_SUBSCRIPTION_CACHE_KEY.$subscriberName;
 
         if ($this->cacheHasKey($cacheKey)) {
             return $subscription;
@@ -379,7 +379,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     protected function cacheHasKey(string $key): bool
     {
-        if (!$this->cache) {
+        if (! $this->cache) {
             return false;
         }
 
@@ -392,7 +392,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     protected function cacheAdd(string $key, $value)
     {
-        if (!$this->cache) {
+        if (! $this->cache) {
             return;
         }
 
