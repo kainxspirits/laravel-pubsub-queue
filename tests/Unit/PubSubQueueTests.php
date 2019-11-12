@@ -3,16 +3,16 @@
 namespace Kainxspirits\PubSubQueue\Tests\Unit;
 
 use Carbon\Carbon;
-use ReflectionClass;
-use Google\Cloud\PubSub\Topic;
-use PHPUnit\Framework\TestCase;
 use Google\Cloud\PubSub\Message;
-use Illuminate\Container\Container;
 use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\Subscription;
-use Kainxspirits\PubSubQueue\PubSubQueue;
-use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use Google\Cloud\PubSub\Topic;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use Kainxspirits\PubSubQueue\PubSubQueue;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class PubSubQueueTests extends TestCase
 {
