@@ -2,13 +2,24 @@
 
 namespace Kainxspirits\PubSubQueue\Connectors;
 
-use Illuminate\Support\Str;
 use Google\Cloud\PubSub\PubSubClient;
-use Kainxspirits\PubSubQueue\PubSubQueue;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Queue\Connectors\ConnectorInterface;
+use Illuminate\Support\Str;
+use Kainxspirits\PubSubQueue\PubSubQueue;
 
 class PubSubConnector implements ConnectorInterface
 {
+    /**
+     * @var CacheRepository|null
+     */
+    protected $cache;
+
+    public function __construct(CacheRepository $cache = null)
+    {
+        $this->cache = $cache;
+    }
+
     /**
      * Default queue name.
      *

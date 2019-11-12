@@ -3,15 +3,20 @@
 namespace Kainxspirits\PubSubQueue;
 
 use Illuminate\Queue\Queue;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Google\Cloud\PubSub\Topic;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
 use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 class PubSubQueue extends Queue implements QueueContract
 {
+    const DEFAULT_TOPIC_CACHE_KEY_PREFIX = 'pub_sub_topic_';
+    const DEFAULT_SUBSCRIPTION_CACHE_KEY = 'pub_sub_subscription_';
+
     /**
      * The PubSubClient instance.
      *
@@ -34,16 +39,26 @@ class PubSubQueue extends Queue implements QueueContract
     protected $subscriber;
 
     /**
+     * Laravel Cache Repository.
+     *
+     * @var CacheRepository
+     */
+    protected $cache;
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
+     * @param string $subscriber
+     * @param CacheRepository|null $cache
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber')
+    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', CacheRepository $cache = null)
     {
         $this->pubsub = $pubsub;
         $this->default = $default;
         $this->subscriber = $subscriber;
+        $this->cache = $cache;
     }
 
     /**
@@ -264,19 +279,26 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Get the current topic.
      *
-     * @param  string $queue
-     * @param  string $create
-     *
+     * @param string $queue
+     * @param bool $create
      * @return \Google\Cloud\PubSub\Topic
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getTopic($queue, $create = false)
     {
         $queue = $this->getQueue($queue);
+        $cacheKey = self::DEFAULT_TOPIC_CACHE_KEY_PREFIX . $queue;
         $topic = $this->pubsub->topic($queue);
+
+        if ($this->cacheHasKey($cacheKey)) {
+            return $topic;
+        }
 
         if (! $topic->exists() && $create) {
             $topic->create();
         }
+
+        $this->cacheAdd($cacheKey, true);
 
         return $topic;
     }
@@ -284,17 +306,25 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Create a new subscription to a topic.
      *
-     * @param  \Google\Cloud\PubSub\Topic  $topic
-     *
+     * @param \Google\Cloud\PubSub\Topic $topic
      * @return \Google\Cloud\PubSub\Subscription
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function subscribeToTopic(Topic $topic)
     {
-        $subscription = $topic->subscription($this->getSubscriberName());
+        $subscriberName = $this->getSubscriberName();
+        $subscription = $topic->subscription($subscriberName);
+        $cacheKey = self::DEFAULT_SUBSCRIPTION_CACHE_KEY . $subscriberName;
+
+        if ($this->cacheHasKey($cacheKey)) {
+            return $subscription;
+        }
 
         if (! $subscription->exists()) {
             $subscription = $topic->subscribe($this->getSubscriberName());
         }
+
+        $this->cacheAdd($cacheKey, true);
 
         return $subscription;
     }
@@ -340,5 +370,32 @@ class PubSubQueue extends Queue implements QueueContract
     protected function getRandomId()
     {
         return Str::random(32);
+    }
+
+    /**
+     * @param string $key
+     * @return bool
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
+    protected function cacheHasKey(string $key): bool
+    {
+        if (!$this->cache) {
+            return false;
+        }
+
+        return $this->cache->has($key);
+    }
+
+    /**
+     * @param string $key
+     * @param $value
+     */
+    protected function cacheAdd(string $key, $value)
+    {
+        if (!$this->cache) {
+            return;
+        }
+
+        $this->cache->add($key, $value, Carbon::now()->addMonth());
     }
 }

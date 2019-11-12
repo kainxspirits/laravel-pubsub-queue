@@ -14,8 +14,9 @@ class PubSubQueueServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app['queue']->addConnector('pubsub', function () {
-            return new PubSubConnector;
+        $cache = $this->app['cache'] ?? null;
+        $this->app['queue']->addConnector('pubsub', function () use ($cache) {
+            return new PubSubConnector($cache);
         });
     }
 }
