@@ -16,14 +16,39 @@ use Illuminate\Contracts\Queue\Queue as QueueContract;
 
 class PubSubQueueTests extends TestCase
 {
-    public function teardown()
-    {
-        //
-    }
+    /**
+     * @var string
+     */
+    protected $expectedResult = 'message-id';
+
+    /**
+     * @var Topic
+     */
+    protected $topic;
+
+    /**
+     * @var PubSubClient
+     */
+    protected $client;
+
+    /**
+     * @var Subscription
+     */
+    protected $subscription;
+
+    /**
+     * @var Message
+     */
+    protected $message;
+
+    /**
+     * @var PubSubQueue
+     */
+    protected $queue;
 
     public function setUp()
     {
-        $this->result = 'message-id';
+        $this->expectedResult = 'message-id';
 
         $this->topic = $this->createMock(Topic::class);
         $this->client = $this->createMock(PubSubClient::class);
@@ -55,14 +80,14 @@ class PubSubQueueTests extends TestCase
 
         $this->queue->expects($this->once())
             ->method('pushRaw')
-            ->willReturn($this->result)
+            ->willReturn($this->expectedResult)
             ->with($this->callback(function ($payload) use ($job, $data) {
                 $decoded_payload = json_decode($payload, true);
 
                 return $decoded_payload['data'] === $data && $decoded_payload['job'] === $job;
             }));
 
-        $this->assertEquals($this->result, $this->queue->push('test', $data));
+        $this->assertEquals($this->expectedResult, $this->queue->push('test', $data));
     }
 
     public function testPushRaw()
@@ -72,10 +97,10 @@ class PubSubQueueTests extends TestCase
             ->setMethods(['getTopic', 'subscribeToTopic'])
             ->getMock();
 
-        $payload = json_encode(['id' => $this->result]);
+        $payload = json_encode(['id' => $this->expectedResult]);
 
         $this->topic->method('publish')
-            ->willReturn($this->result)
+            ->willReturn($this->expectedResult)
             ->with($this->callback(function ($publish) use ($payload) {
                 $decoded_payload = base64_decode($publish['data']);
 
@@ -88,7 +113,7 @@ class PubSubQueueTests extends TestCase
         $queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
 
-        $this->assertEquals($this->result, $queue->pushRaw($payload));
+        $this->assertEquals($this->expectedResult, $queue->pushRaw($payload));
     }
 
     public function testPushRawOptionsOnlyAcceptKeyValueStrings()
@@ -101,7 +126,7 @@ class PubSubQueueTests extends TestCase
             ->getMock();
 
         $this->topic->method('publish')
-            ->willReturn($this->result);
+            ->willReturn($this->expectedResult);
 
         $queue->method('getTopic')
             ->willReturn($this->topic);
@@ -109,7 +134,7 @@ class PubSubQueueTests extends TestCase
         $queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
 
-        $payload = json_encode(['id' => $this->result]);
+        $payload = json_encode(['id' => $this->expectedResult]);
 
         $options = [
             'integer' => 42,
@@ -134,7 +159,7 @@ class PubSubQueueTests extends TestCase
 
         $this->queue->expects($this->once())
             ->method('pushRaw')
-            ->willReturn($this->result)
+            ->willReturn($this->expectedResult)
             ->with(
                 $this->isType('string'),
                 $this->anything(),
@@ -157,7 +182,7 @@ class PubSubQueueTests extends TestCase
                 })
             );
 
-        $this->assertEquals($this->result, $this->queue->later($delay, $job, ['foo' => 'bar']));
+        $this->assertEquals($this->expectedResult, $this->queue->later($delay, $job, ['foo' => 'bar']));
     }
 
     public function testPopWhenJobsAvailable()
@@ -245,7 +270,7 @@ class PubSubQueueTests extends TestCase
 
         $this->topic->expects($this->once())
             ->method('publishBatch')
-            ->willReturn($this->result)
+            ->willReturn($this->expectedResult)
             ->with($this->callback(function ($payloads) use ($jobs, $data) {
                 $decoded_payload = json_decode(base64_decode($payloads[0]['data']), true);
 
@@ -258,7 +283,7 @@ class PubSubQueueTests extends TestCase
         $this->queue->method('subscribeToTopic')
             ->willReturn($this->subscription);
 
-        $this->assertEquals($this->result, $this->queue->bulk($jobs, $data));
+        $this->assertEquals($this->expectedResult, $this->queue->bulk($jobs, $data));
     }
 
     public function testAcknowledge()
@@ -289,7 +314,7 @@ class PubSubQueueTests extends TestCase
 
         $this->topic->expects($this->once())
             ->method('publish')
-            ->willReturn($this->result)
+            ->willReturn($this->expectedResult)
             ->with(
                 $this->callback(function ($message) use ($options, $delay_timestamp) {
                     if (! isset($message['attributes']) || ! is_array($message['attributes'])) {
@@ -347,7 +372,7 @@ class PubSubQueueTests extends TestCase
             ->willReturn($delay_timestamp);
 
         $this->topic->method('publish')
-            ->willReturn($this->result);
+            ->willReturn($this->expectedResult);
 
         $options = [
             'integer' => 42,
