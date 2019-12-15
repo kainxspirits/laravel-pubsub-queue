@@ -1,1 +1,0 @@
-{"php":"7.2.24-1+ubuntu18.04.1+deb.sury.org+1","version":"2.15.1:v2.15.1#20064511ab796593a3990669eff5f5b535001f7c","indent":"    ","lineEnding":"\n","rules":{"ordered_imports":true},"hashes":{"src\/Connectors\/PubSubConnector.php":3542910252,"src\/Jobs\/PubSubJob.php":1682084315,"src\/PubSubQueue.php":4160865473,"src\/PubSubQueueServiceProvider.php":3354297367}}
