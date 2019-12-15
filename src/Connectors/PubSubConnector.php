@@ -2,10 +2,10 @@
 
 namespace Kainxspirits\PubSubQueue\Connectors;
 
-use Illuminate\Support\Str;
 use Google\Cloud\PubSub\PubSubClient;
-use Kainxspirits\PubSubQueue\PubSubQueue;
 use Illuminate\Queue\Connectors\ConnectorInterface;
+use Illuminate\Support\Str;
+use Kainxspirits\PubSubQueue\PubSubQueue;
 
 class PubSubConnector implements ConnectorInterface
 {

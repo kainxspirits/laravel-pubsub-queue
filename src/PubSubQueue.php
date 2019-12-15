@@ -2,13 +2,13 @@
 
 namespace Kainxspirits\PubSubQueue;
 
-use Illuminate\Queue\Queue;
-use Illuminate\Support\Str;
-use Google\Cloud\PubSub\Topic;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
-use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use Google\Cloud\PubSub\Topic;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Queue\Queue;
+use Illuminate\Support\Str;
+use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
 
 class PubSubQueue extends Queue implements QueueContract
 {

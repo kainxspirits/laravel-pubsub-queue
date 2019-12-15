@@ -2,11 +2,11 @@
 
 namespace Kainxspirits\PubSubQueue\Jobs;
 
-use Illuminate\Queue\Jobs\Job;
 use Google\Cloud\PubSub\Message;
 use Illuminate\Container\Container;
-use Kainxspirits\PubSubQueue\PubSubQueue;
 use Illuminate\Contracts\Queue\Job as JobContract;
+use Illuminate\Queue\Jobs\Job;
+use Kainxspirits\PubSubQueue\PubSubQueue;
 
 class PubSubJob extends Job implements JobContract
 {
