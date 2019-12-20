@@ -1,12 +1,12 @@
 <?php
 
-namespace Kainxspirits\PubSubQueue\Tests\Unit\Connectors;
+namespace PubSub\PubSubQueue\Tests\Unit\Connectors;
 
 use ReflectionClass;
 use PHPUnit\Framework\TestCase;
-use Kainxspirits\PubSubQueue\PubSubQueue;
+use PubSub\PubSubQueue\PubSubQueue;
 use Illuminate\Queue\Connectors\ConnectorInterface;
-use Kainxspirits\PubSubQueue\Connectors\PubSubConnector;
+use PubSub\PubSubQueue\Connectors\PubSubConnector;
 
 class PubSubConnectorTests extends TestCase
 {

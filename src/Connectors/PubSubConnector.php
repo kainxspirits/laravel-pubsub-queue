@@ -1,9 +1,9 @@
 <?php
 
-namespace Kainxspirits\PubSubQueue\Connectors;
+namespace PubSub\PubSubQueue\Connectors;
 
 use Google\Cloud\PubSub\PubSubClient;
-use Kainxspirits\PubSubQueue\PubSubQueue;
+use PubSub\PubSubQueue\PubSubQueue;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 
 class PubSubConnector implements ConnectorInterface
@@ -24,10 +24,10 @@ class PubSubConnector implements ConnectorInterface
     public function connect(array $config)
     {
         $gcp_config = $this->transformConfig($config);
-
         return new PubSubQueue(
             new PubSubClient($gcp_config),
-            $config['queue'] ?? $this->default_queue
+            $config['queue'] ?? $this->default_queue,
+            $gcp_config
         );
     }
 

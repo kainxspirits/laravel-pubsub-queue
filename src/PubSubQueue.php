@@ -1,14 +1,14 @@
 <?php
 
-namespace Kainxspirits\PubSubQueue;
+namespace PubSub\PubSubQueue;
 
-use Illuminate\Queue\Queue;
-use Illuminate\Support\Str;
-use Google\Cloud\PubSub\Topic;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
-use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use Google\Cloud\PubSub\Topic;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Queue\Queue;
+use Illuminate\Support\Str;
+use PubSub\PubSubQueue\Jobs\PubSubJob;
 
 class PubSubQueue extends Queue implements QueueContract
 {
@@ -27,15 +27,26 @@ class PubSubQueue extends Queue implements QueueContract
     protected $default;
 
     /**
+     * PubSub config
+     */
+    protected $config;
+
+    /**
+     * Subscriber name
+     */
+    protected $subscriber;
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
      */
-    public function __construct(PubSubClient $pubsub, $default)
+    public function __construct(PubSubClient $pubsub, $default, $config)
     {
         $this->pubsub = $pubsub;
         $this->default = $default;
+        $this->config = $config;
     }
 
     /**
@@ -47,9 +58,36 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return int
      */
-    public function size($queue = null)
+    public function size($subscriber = null)
     {
         return 0;
+    }
+
+    /**
+     * Check whether handler exist
+     *
+     * @param  string  $queue
+     *
+     * @return bool
+     */
+    public function checkHandler($subscriber)
+    {
+        if (array_key_exists('plainHandlers', $this->config)) {
+            return array_key_exists($subscriber, $this->config['plainHandlers']);
+        }
+        return false;
+    }
+
+    /**
+     * Check whether handler exist
+     *
+     * @param  string  $queue
+     *
+     * @return string
+     */
+    public function getHandler($subscriber)
+    {
+        return $this->config['plainHandlers'][$subscriber];
     }
 
     /**
@@ -61,29 +99,28 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return mixed
      */
-    public function push($job, $data = '', $queue = null)
+    public function push($job, $data = '', $subscriberName = null)
     {
-        return $this->pushRaw($this->createPayload($job, $this->getQueue($queue), $data), $queue);
+        return $this->pushRaw($this->createPayload($job, $subscriberName, $data), $subscriberName);
     }
 
     /**
      * Push a raw payload onto the queue.
      *
      * @param  string  $payload
-     * @param  string  $queue
+     * @param  string  $subscriber
      * @param  array   $options
      *
      * @return array
      */
-    public function pushRaw($payload, $queue = null, array $options = [])
+    public function pushRaw($payload, $subscriberName = null, array $options = [])
     {
-        $topic = $this->getTopic($queue, true);
+        $payload = base64_encode($payload);
 
-        $this->subscribeToTopic($topic);
-
+        $topic = $this->getTopicUsingSubscriber($subscriberName);
         $publish = ['data' => $payload];
 
-        if (! empty($options)) {
+        if (!empty($options)) {
             $publish['attributes'] = $options;
         }
 
@@ -100,46 +137,43 @@ class PubSubQueue extends Queue implements QueueContract
      * @param  \DateTimeInterface|\DateInterval|int  $delay
      * @param  string|object  $job
      * @param  mixed   $data
-     * @param  string  $queue
+     * @param  string  $subscriber
      *
      * @return mixed
      */
-    public function later($delay, $job, $data = '', $queue = null)
+    public function later($delay, $job, $data = '', $subscriber = null)
     {
         return $this->pushRaw(
-            $this->createPayload($job, $this->getQueue($queue), $data),
-            $queue,
-            ['available_at' => $this->availableAt($delay)]
+            $this->createPayload($job, $data),
+            $subscriber,
+            ['available_at' => (string) $this->availableAt($delay)]
         );
     }
 
     /**
      * Pop the next job off of the queue.
      *
-     * @param  string  $queue
+     * @param  string  $subscriber
      * @return \Illuminate\Contracts\Queue\Job|null
      */
-    public function pop($queue = null)
+    public function pop($subscriber = null)
     {
-        $topic = $this->getTopic($this->getQueue($queue));
-
-        if (! $topic->exists()) {
-            return;
-        }
-
-        $subscription = $topic->subscription($this->getSubscriberName());
+        $this->subscriber = $subscriber;
+        $topic = $this->getTopic($this->getQueue($subscriber));
+        $subscription = $topic->subscription($subscriber);
         $messages = $subscription->pull([
             'returnImmediately' => true,
             'maxMessages' => 1,
         ]);
 
-        if (! empty($messages) && count($messages) > 0) {
+        if (!empty($messages) && count($messages) > 0) {
             return new PubSubJob(
                 $this->container,
                 $this,
                 $messages[0],
                 $this->connectionName,
-                $this->getQueue($queue)
+                $subscriber,
+                $subscriber
             );
         }
     }
@@ -163,8 +197,6 @@ class PubSubQueue extends Queue implements QueueContract
 
         $topic = $this->getTopic($this->getQueue($queue), true);
 
-        $this->subscribeToTopic($topic);
-
         return $topic->publishBatch($payloads);
     }
 
@@ -176,7 +208,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function acknowledge(Message $message, $queue = null)
     {
-        $subscription = $this->getTopic($this->getQueue($queue))->subscription($this->getSubscriberName());
+        $subscription = $this->getTopic($this->getQueue($queue))->subscription($this->subscriber);
         $subscription->acknowledge($message);
     }
 
@@ -188,15 +220,19 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return mixed
      */
-    public function acknowledgeAndPublish(Message $message, $queue = null, $options = [], $delay = 0)
+    public function acknowledgeAndPublish(Message $message, $subscriberName = null, $options = [], $delay = 0)
     {
-        $topic = $this->getTopic($this->getQueue($queue));
-        $subscription = $topic->subscription($this->getSubscriberName());
+        if (isset($options['attempts'])) {
+            $options['attempts'] = (string) $options['attempts'];
+        }
+        $topic = $this->getTopicUsingSubscriber($subscriberName);
+
+        $subscription = $topic->subscription($this->subscriber);
 
         $subscription->acknowledge($message);
 
         $options = array_merge([
-            'available_at' => $this->availableAt($delay),
+            'available_at' => (string) $this->availableAt($delay),
         ], $options);
 
         return $topic->publish([
@@ -215,11 +251,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @throws \Illuminate\Queue\InvalidPayloadException
      */
-    protected function createPayload($job, $queue, $data = '')
+    protected function createPayload($job, $topicName, $data = '')
     {
-        $payload = parent::createPayload($job, $this->getQueue($queue), $data);
-
-        return base64_encode($payload);
+        return parent::createPayload($job, $topicName, $data);
     }
 
     /**
@@ -232,7 +266,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     protected function createPayloadArray($job, $queue, $data = '')
     {
-        return array_merge(parent::createPayloadArray($job, $this->getQueue($queue), $data), [
+        return array_merge(parent::createPayloadArray($job, $queue, $data), [
             'id' => $this->getRandomId(),
         ]);
     }
@@ -241,18 +275,27 @@ class PubSubQueue extends Queue implements QueueContract
      * Get the current topic.
      *
      * @param  string $queue
-     * @param  string $create
      *
      * @return \Google\Cloud\PubSub\Topic
      */
-    public function getTopic($queue, $create = false)
+    public function getTopic($queue)
     {
-        $queue = $this->getQueue($queue);
         $topic = $this->pubsub->topic($queue);
 
-        if (! $topic->exists() && $create) {
-            $topic->create();
-        }
+        return $topic;
+    }
+
+    /**
+     * Get the current topic using subscriber.
+     *
+     * @param  string $queue
+     *
+     * @return \Google\Cloud\PubSub\Topic
+     */
+    public function getTopicUsingSubscriber($subscriberName)
+    {
+        $topicName = $this->getQueue($subscriberName);
+        $topic = $this->pubsub->topic($topicName);
 
         return $topic;
     }
@@ -264,13 +307,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return \Google\Cloud\PubSub\Subscription
      */
-    public function subscribeToTopic(Topic $topic)
+    public function subscribeToTopic(Topic $topic, $subscriber = null)
     {
-        $subscription = $topic->subscription($this->getSubscriberName());
-
-        if (! $subscription->exists()) {
-            $subscription = $topic->subscribe($this->getSubscriberName());
-        }
+        $subscription = $topic->subscription($subscriber);
 
         return $subscription;
     }
@@ -282,9 +321,9 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @return string
      */
-    public function getSubscriberName()
+    public function getSubscriberName($queue = null)
     {
-        return 'subscriber';
+        return $queue;
     }
 
     /**
@@ -305,7 +344,10 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function getQueue($queue)
     {
-        return $queue ?: $this->default;
+        if ($this->config && $this->config['subscribers'] && $queue && isset($this->config['subscribers'][$queue])) {
+            return $this->config['subscribers'][$queue];
+        }
+        return $this->default;
     }
 
     /**
