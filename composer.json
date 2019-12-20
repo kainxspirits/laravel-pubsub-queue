@@ -20,7 +20,7 @@
     "require": {
         "php": ">=7.1",
         "google/cloud-pubsub": "^1.1",
-        "illuminate/queue": "6.0.*",
+        "illuminate/queue": "6.*",
         "laravel/helpers": "^1.1"
     },
     "require-dev": {
