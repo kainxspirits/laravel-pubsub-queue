@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "php" : ">=7.1",
+        "php" : ">=7.2",
         "ext-json": "*",
         "illuminate/queue": "5.7.* | 5.8.* | ^6.0 | ^7.0",
         "illuminate/support": "5.7.* | 5.8.* | ^6.0 | ^7.0",
