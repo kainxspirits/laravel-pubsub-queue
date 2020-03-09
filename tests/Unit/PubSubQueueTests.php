@@ -46,7 +46,7 @@ class PubSubQueueTests extends TestCase
      */
     protected $queue;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->expectedResult = 'message-id';
 
