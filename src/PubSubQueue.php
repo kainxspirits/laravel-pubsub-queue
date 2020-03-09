@@ -244,7 +244,7 @@ class PubSubQueue extends Queue implements QueueContract
      * @throws \UnexpectedValueException
      * @return array
      */
-    private function validateMessageAttributes($attributes) : array
+    private function validateMessageAttributes($attributes): array
     {
         $attributes_values = array_filter($attributes, 'is_string');
 
