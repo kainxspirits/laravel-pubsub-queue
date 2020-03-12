@@ -30,7 +30,8 @@ class PubSubConnector implements ConnectorInterface
             new PubSubClient($gcp_config),
             $config['queue'] ?? $this->default_queue,
             $config['subscriber'] ?? 'subscriber',
-            $config['create_topics'] ?? true
+            $config['create_topics'] ?? true,
+            $config['create_subscriptions'] ?? true
         );
     }
 

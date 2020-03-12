@@ -41,17 +41,25 @@ class PubSubQueue extends Queue implements QueueContract
     protected $topicAutoCreation;
 
     /**
+     * Create subscriptions automatically
+     *
+     * @var bool
+     */
+    protected $subscriptionAutoCreation;
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true)
+    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true)
     {
         $this->pubsub = $pubsub;
         $this->default = $default;
         $this->subscriber = $subscriber;
         $this->topicAutoCreation = $topicAutoCreation;
+        $this->subscriptionAutoCreation = $subscriptionAutoCreation;
     }
 
     /**
@@ -139,7 +147,7 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $topic = $this->getTopic($this->getQueue($queue));
 
-        if (! $topic->exists()) {
+        if ($this->topicAutoCreation && ! $topic->exists()) {
             return;
         }
 
@@ -301,7 +309,8 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $subscription = $topic->subscription($this->getSubscriberName());
 
-        if (! $subscription->exists()) {
+        // don't check subscription if automatic creation is not required, to avoid additional administrator operations calls
+        if ($this->subscriptionAutoCreation && ! $subscription->exists()) {
             $subscription = $topic->subscribe($this->getSubscriberName());
         }
 
