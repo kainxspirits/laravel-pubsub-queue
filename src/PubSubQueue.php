@@ -34,14 +34,14 @@ class PubSubQueue extends Queue implements QueueContract
     protected $subscriber;
 
     /**
-     * Create topics automatically
+     * Create topics automatically.
      *
      * @var bool
      */
     protected $topicAutoCreation;
 
     /**
-     * Create subscriptions automatically
+     * Create subscriptions automatically.
      *
      * @var bool
      */
