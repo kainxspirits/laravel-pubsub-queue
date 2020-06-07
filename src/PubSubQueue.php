@@ -2,6 +2,7 @@
 
 namespace Kainxspirits\PubSubQueue;
 
+use Google\Cloud\Core\Exception\NotFoundException;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\Topic;
@@ -9,9 +10,17 @@ use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue;
 use Illuminate\Support\Str;
 use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use Kainxspirits\PubSubQueue\PubSub\Topics\TopicProxyFactory;
 
 class PubSubQueue extends Queue implements QueueContract
 {
+    /**
+     * Topic proxy factory.
+     *
+     * @var \Kainxspirits\PubSubQueue\PubSub\Topics\TopicProxyFactory
+     */
+    protected $topicProxyFactory;
+
     /**
      * The PubSubClient instance.
      *
@@ -34,32 +43,19 @@ class PubSubQueue extends Queue implements QueueContract
     protected $subscriber;
 
     /**
-     * Create topics automatically.
-     *
-     * @var bool
-     */
-    protected $topicAutoCreation;
-
-    /**
-     * Create subscriptions automatically.
-     *
-     * @var bool
-     */
-    protected $subscriptionAutoCreation;
-
-    /**
      * Create a new GCP PubSub instance.
      *
+     * @param \Kainxspirits\PubSubQueue\PubSub\Topics\TopicProxyFactory $topicProxyFactory
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
+     * @param string $subscriber
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true)
+    public function __construct(TopicProxyFactory $topicProxyFactory, PubSubClient $pubsub, $default, $subscriber = 'subscriber')
     {
+        $this->topicProxyFactory = $topicProxyFactory;
         $this->pubsub = $pubsub;
         $this->default = $default;
         $this->subscriber = $subscriber;
-        $this->topicAutoCreation = $topicAutoCreation;
-        $this->subscriptionAutoCreation = $subscriptionAutoCreation;
     }
 
     /**
@@ -101,9 +97,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
-        $topic = $this->getTopic($queue, $this->topicAutoCreation);
-
-        $this->subscribeToTopic($topic);
+        $topic = $this->getTopic($queue);
 
         $publish = ['data' => base64_encode($payload)];
 
@@ -111,7 +105,7 @@ class PubSubQueue extends Queue implements QueueContract
             $publish['attributes'] = $this->validateMessageAttributes($options);
         }
 
-        $topic->publish($publish);
+        $this->topicProxyFactory->make($topic, $this->getSubscriberName())->publish($publish);
 
         $decoded_payload = json_decode($payload, true);
 
@@ -147,7 +141,7 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $topic = $this->getTopic($this->getQueue($queue));
 
-        if ($this->topicAutoCreation && ! $topic->exists()) {
+        if (! $topic->exists()) {
             return;
         }
 
@@ -195,11 +189,9 @@ class PubSubQueue extends Queue implements QueueContract
             $payloads[] = ['data' => base64_encode($payload)];
         }
 
-        $topic = $this->getTopic($this->getQueue($queue), $this->topicAutoCreation);
+        $topic = $this->getTopic($this->getQueue($queue));
 
-        $this->subscribeToTopic($topic);
-
-        return $topic->publishBatch($payloads);
+        return $this->topicProxyFactory->make($topic, $this->getSubscriberName())->publishBatch($payloads);
     }
 
     /**
@@ -230,7 +222,7 @@ class PubSubQueue extends Queue implements QueueContract
             'available_at' => (string) $this->availableAt($delay),
         ], $this->validateMessageAttributes($options));
 
-        return $topic->publish([
+        return $this->topicProxyFactory->make($topic, $this->getSubscriberName())->publish([
             'data' => $message->data(),
             'attributes' => $options,
         ]);
@@ -281,40 +273,14 @@ class PubSubQueue extends Queue implements QueueContract
      * Get the current topic.
      *
      * @param  string $queue
-     * @param  string $create
+     * @param  bool $creates
      *
      * @return \Google\Cloud\PubSub\Topic
      */
-    public function getTopic($queue, $create = false)
+    public function getTopic($queue, bool $creates = false)
     {
         $queue = $this->getQueue($queue);
-        $topic = $this->pubsub->topic($queue);
-
-        // don't check topic if automatic creation is not required, to avoid additional administrator operations calls
-        if ($create && ! $topic->exists()) {
-            $topic->create();
-        }
-
-        return $topic;
-    }
-
-    /**
-     * Create a new subscription to a topic.
-     *
-     * @param  \Google\Cloud\PubSub\Topic  $topic
-     *
-     * @return \Google\Cloud\PubSub\Subscription
-     */
-    public function subscribeToTopic(Topic $topic)
-    {
-        $subscription = $topic->subscription($this->getSubscriberName());
-
-        // don't check subscription if automatic creation is not required, to avoid additional administrator operations calls
-        if ($this->subscriptionAutoCreation && ! $subscription->exists()) {
-            $subscription = $topic->subscribe($this->getSubscriberName());
-        }
-
-        return $subscription;
+        return $this->pubsub->topic($queue);
     }
 
     /**
@@ -343,6 +309,7 @@ class PubSubQueue extends Queue implements QueueContract
      * Get the queue or return the default.
      *
      * @param  string|null  $queue
+     *
      * @return string
      */
     public function getQueue($queue)

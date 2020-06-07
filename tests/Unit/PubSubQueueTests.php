@@ -10,6 +10,7 @@ use Google\Cloud\PubSub\Topic;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Kainxspirits\PubSubQueue\Jobs\PubSubJob;
+use Kainxspirits\PubSubQueue\PubSub\Topics\TopicProxyFactory;
 use Kainxspirits\PubSubQueue\PubSubQueue;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -20,6 +21,11 @@ class PubSubQueueTests extends TestCase
      * @var string
      */
     protected $expectedResult = 'message-id';
+
+    /**
+     * @var TopicProxyFactory
+     */
+    protected $topicProxyFactory;
 
     /**
      * @var Topic
@@ -50,20 +56,20 @@ class PubSubQueueTests extends TestCase
     {
         $this->expectedResult = 'message-id';
 
+        $this->topicProxyFactory = new TopicProxyFactory;
         $this->topic = $this->createMock(Topic::class);
         $this->client = $this->createMock(PubSubClient::class);
         $this->subscription = $this->createMock(Subscription::class);
         $this->message = $this->createMock(Message::class);
 
         $this->queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->topicProxyFactory, $this->client, 'default'])
             ->setMethods([
                 'pushRaw',
                 'getTopic',
                 'exists',
                 'subscription',
                 'availableAt',
-                'subscribeToTopic',
             ])->getMock();
     }
 
@@ -93,8 +99,8 @@ class PubSubQueueTests extends TestCase
     public function testPushRaw()
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods(['getTopic', 'subscribeToTopic'])
+            ->setConstructorArgs([$this->topicProxyFactory, $this->client, 'default'])
+            ->setMethods(['getTopic'])
             ->getMock();
 
         $payload = json_encode(['id' => $this->expectedResult]);
@@ -110,9 +116,6 @@ class PubSubQueueTests extends TestCase
         $queue->method('getTopic')
             ->willReturn($this->topic);
 
-        $queue->method('subscribeToTopic')
-            ->willReturn($this->subscription);
-
         $this->assertEquals($this->expectedResult, $queue->pushRaw($payload));
     }
 
@@ -121,8 +124,8 @@ class PubSubQueueTests extends TestCase
         $this->expectException(\UnexpectedValueException::class);
 
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods(['getTopic', 'subscribeToTopic'])
+            ->setConstructorArgs([$this->topicProxyFactory, $this->client, 'default'])
+            ->setMethods(['getTopic'])
             ->getMock();
 
         $this->topic->method('publish')
@@ -130,9 +133,6 @@ class PubSubQueueTests extends TestCase
 
         $queue->method('getTopic')
             ->willReturn($this->topic);
-
-        $queue->method('subscribeToTopic')
-            ->willReturn($this->subscription);
 
         $payload = json_encode(['id' => $this->expectedResult]);
 
@@ -280,9 +280,6 @@ class PubSubQueueTests extends TestCase
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
 
-        $this->queue->method('subscribeToTopic')
-            ->willReturn($this->subscription);
-
         $this->assertEquals($this->expectedResult, $this->queue->bulk($jobs, $data));
     }
 
@@ -395,72 +392,17 @@ class PubSubQueueTests extends TestCase
             ->willReturn($this->topic);
 
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
+            ->setConstructorArgs([$this->topicProxyFactory, $this->client, 'default'])
             ->setMethods()
             ->getMock();
 
         $this->assertTrue($queue->getTopic('test') instanceof Topic);
     }
 
-    public function testCreateTopicAndReturnIt()
-    {
-        $this->topic->method('exists')
-            ->willReturn(false);
-
-        $this->topic->expects($this->once())
-            ->method('create')
-            ->willReturn(true);
-
-        $this->client->method('topic')
-            ->willReturn($this->topic);
-
-        $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
-            ->getMock();
-
-        $this->assertTrue($queue->getTopic('test', true) instanceof Topic);
-    }
-
-    public function testSubscribtionIsCreated()
-    {
-        $this->topic->method('subscription')
-            ->willReturn($this->subscription);
-
-        $this->topic->method('subscribe')
-            ->willReturn($this->subscription);
-
-        $this->subscription->method('exists')
-            ->willReturn(false);
-
-        $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
-            ->getMock();
-
-        $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
-    }
-
-    public function testSubscriptionIsRetrieved()
-    {
-        $this->topic->method('subscription')
-            ->willReturn($this->subscription);
-
-        $this->subscription->method('exists')
-            ->willReturn(true);
-
-        $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
-            ->getMock();
-
-        $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
-    }
-
     public function testGetSubscriberName()
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
-            ->setConstructorArgs([$this->client, 'default', 'test-subscriber'])
+            ->setConstructorArgs([$this->topicProxyFactory, $this->client, 'default', 'test-subscriber'])
             ->setMethods()
             ->getMock();
 

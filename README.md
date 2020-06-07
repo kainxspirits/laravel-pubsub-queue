@@ -33,6 +33,8 @@ You can check [Google Cloud PubSub client](http://googleapis.github.io/google-cl
     'retries' => 3,
     'request_timeout' => 60,
     'subscriber' => 'subscriber-name',
+    'create_topics' => true, // automatically re-create topics if not found
+    'create_subscriptions' => true, // automatically re-create subscriptions if not found
 ],
 ```
 

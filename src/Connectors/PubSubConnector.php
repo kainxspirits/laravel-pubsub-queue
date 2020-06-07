@@ -5,6 +5,7 @@ namespace Kainxspirits\PubSubQueue\Connectors;
 use Google\Cloud\PubSub\PubSubClient;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 use Illuminate\Support\Str;
+use Kainxspirits\PubSubQueue\PubSub\Topics\TopicProxyFactory;
 use Kainxspirits\PubSubQueue\PubSubQueue;
 
 class PubSubConnector implements ConnectorInterface
@@ -25,13 +26,14 @@ class PubSubConnector implements ConnectorInterface
     public function connect(array $config)
     {
         $gcp_config = $this->transformConfig($config);
+        $creates_topics = $config['creates_topics'] ?? true;
+        $creates_subscriptions = $config['create_subscriptions'] ?? true;
 
         return new PubSubQueue(
+            new TopicProxyFactory($creates_topics, $creates_subscriptions),
             new PubSubClient($gcp_config),
             $config['queue'] ?? $this->default_queue,
-            $config['subscriber'] ?? 'subscriber',
-            $config['create_topics'] ?? true,
-            $config['create_subscriptions'] ?? true
+            $config['subscriber'] ?? 'subscriber'
         );
     }
 
