@@ -2,7 +2,6 @@
 
 namespace Kainxspirits\PubSubQueue;
 
-use Google\Cloud\Core\Exception\NotFoundException;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\Topic;
@@ -280,6 +279,7 @@ class PubSubQueue extends Queue implements QueueContract
     public function getTopic($queue, bool $creates = false)
     {
         $queue = $this->getQueue($queue);
+
         return $this->pubsub->topic($queue);
     }
 

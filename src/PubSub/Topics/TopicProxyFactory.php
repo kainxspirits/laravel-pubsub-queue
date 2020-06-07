@@ -32,7 +32,7 @@ class TopicProxyFactory
      *
      * @return TopicProxy
      */
-    public function make(Topic $topic, string $subscriptionName) : TopicProxy
+    public function make(Topic $topic, string $subscriptionName): TopicProxy
     {
         return new TopicProxy(
             $topic,

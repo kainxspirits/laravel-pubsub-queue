@@ -100,7 +100,7 @@ class TopicProxy
     /**
      * @return \Google\Cloud\PubSub\Topic
      */
-    public function getTopic() : Topic
+    public function getTopic(): Topic
     {
         return $this->topic;
     }
@@ -110,7 +110,7 @@ class TopicProxy
      *
      * @return \Google\Cloud\PubSub\Topic
      */
-    protected function handleNotFoundException(Topic $topic) : Topic
+    protected function handleNotFoundException(Topic $topic): Topic
     {
         $topicExists = $topic->exists();
 
@@ -131,7 +131,7 @@ class TopicProxy
     /**
      * @return bool
      */
-    protected function shouldRecreateTopics() : bool
+    protected function shouldRecreateTopics(): bool
     {
         return $this->createsTopics;
     }
@@ -139,7 +139,7 @@ class TopicProxy
     /**
      * @return bool
      */
-    protected function shouldRecreateSubscriptions() : bool
+    protected function shouldRecreateSubscriptions(): bool
     {
         return $this->createsSubscriptions;
     }

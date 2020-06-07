@@ -12,7 +12,7 @@ class TopicProxyTests extends TestCase
 {
     protected $topic;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         $this->topic = $this->createMock(Topic::class);
     }
