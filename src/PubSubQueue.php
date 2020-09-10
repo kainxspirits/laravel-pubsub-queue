@@ -145,8 +145,11 @@ class PubSubQueue extends Queue implements QueueContract
             return;
         }
 
-        $available_at = $messages[0]->attribute('available_at');
-        if ($available_at && $available_at > time()) {
+        $available_at = intval($messages[0]->attribute('available_at'));
+        $current_time = time();
+        if ($available_at && $available_at > $current_time) {
+            $this->modifyAckDeadline($messages[0], $available_at - $current_time, $queue);
+
             return;
         }
 
@@ -196,6 +199,19 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $subscription = $this->getTopic($this->getQueue($queue))->subscription($this->getSubscriberName());
         $subscription->acknowledge($message);
+    }
+    
+    /**
+     * Modify acknowledge deadline of a message.
+     *
+     * @param  \Google\Cloud\PubSub\Message $message
+     * @param  int $seconds
+     * @param  string $queue
+     */
+    public function modifyAckDeadline(Message $message, int $seconds, $queue = null)
+    {
+        $subscription = $this->getTopic($this->getQueue($queue))->subscription($this->getSubscriberName());
+        $subscription->modifyAckDeadline($message, $seconds);
     }
 
     /**
