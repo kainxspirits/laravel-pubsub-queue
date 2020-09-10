@@ -200,7 +200,7 @@ class PubSubQueue extends Queue implements QueueContract
         $subscription = $this->getTopic($this->getQueue($queue))->subscription($this->getSubscriberName());
         $subscription->acknowledge($message);
     }
-    
+
     /**
      * Modify acknowledge deadline of a message.
      *
