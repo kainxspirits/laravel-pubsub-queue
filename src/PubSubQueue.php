@@ -357,11 +357,11 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $queue = $queue ?: $this->default;
 
-        if (!$this->queuePrefix || Str::startsWith($queue, $this->queuePrefix)) {
+        if (! $this->queuePrefix || Str::startsWith($queue, $this->queuePrefix)) {
             return $queue;
         }
-        
-        return $this->queuePrefix . $queue;
+
+        return $this->queuePrefix.$queue;
     }
 
     /**
