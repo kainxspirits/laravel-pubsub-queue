@@ -48,18 +48,26 @@ class PubSubQueue extends Queue implements QueueContract
     protected $subscriptionAutoCreation;
 
     /**
+     * Prepend all queue names with this prefix.
+     *
+     * @var string
+     */
+    protected $queuePrefix = '';
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true)
+    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true, $queuePrefix = '')
     {
         $this->pubsub = $pubsub;
         $this->default = $default;
         $this->subscriber = $subscriber;
         $this->topicAutoCreation = $topicAutoCreation;
         $this->subscriptionAutoCreation = $subscriptionAutoCreation;
+        $this->queuePrefix = $queuePrefix;
     }
 
     /**
@@ -347,7 +355,13 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function getQueue($queue)
     {
-        return $queue ?: $this->default;
+        $queue = $queue ?: $this->default;
+
+        if (!$this->queuePrefix || Str::startsWith($queue, $this->queuePrefix)) {
+            return $queue;
+        }
+        
+        return $this->queuePrefix . $queue;
     }
 
     /**
