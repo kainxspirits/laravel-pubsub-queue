@@ -34,16 +34,40 @@ class PubSubQueue extends Queue implements QueueContract
     protected $subscriber;
 
     /**
+     * Create topics automatically.
+     *
+     * @var bool
+     */
+    protected $topicAutoCreation;
+
+    /**
+     * Create subscriptions automatically.
+     *
+     * @var bool
+     */
+    protected $subscriptionAutoCreation;
+
+    /**
+     * Prepend all queue names with this prefix.
+     *
+     * @var string
+     */
+    protected $queuePrefix = '';
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param \Google\Cloud\PubSub\PubSubClient $pubsub
      * @param string $default
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber')
+    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true, $queuePrefix = '')
     {
         $this->pubsub = $pubsub;
         $this->default = $default;
         $this->subscriber = $subscriber;
+        $this->topicAutoCreation = $topicAutoCreation;
+        $this->subscriptionAutoCreation = $subscriptionAutoCreation;
+        $this->queuePrefix = $queuePrefix;
     }
 
     /**
@@ -85,7 +109,7 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function pushRaw($payload, $queue = null, array $options = [])
     {
-        $topic = $this->getTopic($queue, true);
+        $topic = $this->getTopic($queue, $this->topicAutoCreation);
 
         $this->subscribeToTopic($topic);
 
@@ -131,7 +155,7 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $topic = $this->getTopic($this->getQueue($queue));
 
-        if (! $topic->exists()) {
+        if ($this->topicAutoCreation && ! $topic->exists()) {
             return;
         }
 
@@ -179,7 +203,7 @@ class PubSubQueue extends Queue implements QueueContract
             $payloads[] = ['data' => base64_encode($payload)];
         }
 
-        $topic = $this->getTopic($this->getQueue($queue), true);
+        $topic = $this->getTopic($this->getQueue($queue), $this->topicAutoCreation);
 
         $this->subscribeToTopic($topic);
 
@@ -274,7 +298,8 @@ class PubSubQueue extends Queue implements QueueContract
         $queue = $this->getQueue($queue);
         $topic = $this->pubsub->topic($queue);
 
-        if (! $topic->exists() && $create) {
+        // don't check topic if automatic creation is not required, to avoid additional administrator operations calls
+        if ($create && ! $topic->exists()) {
             $topic->create();
         }
 
@@ -292,7 +317,8 @@ class PubSubQueue extends Queue implements QueueContract
     {
         $subscription = $topic->subscription($this->getSubscriberName());
 
-        if (! $subscription->exists()) {
+        // don't check subscription if automatic creation is not required, to avoid additional administrator operations calls
+        if ($this->subscriptionAutoCreation && ! $subscription->exists()) {
             $subscription = $topic->subscribe($this->getSubscriberName());
         }
 
@@ -329,7 +355,13 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function getQueue($queue)
     {
-        return $queue ?: $this->default;
+        $queue = $queue ?: $this->default;
+
+        if (! $this->queuePrefix || Str::startsWith($queue, $this->queuePrefix)) {
+            return $queue;
+        }
+
+        return $this->queuePrefix.$queue;
     }
 
     /**

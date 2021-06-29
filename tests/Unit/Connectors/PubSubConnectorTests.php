@@ -27,6 +27,24 @@ class PubSubConnectorTests extends TestCase
         $this->assertEquals($queue->getSubscriberName(), 'test-subscriber');
     }
 
+    public function testQueuePrefixAdded()
+    {
+        $connector = new PubSubConnector();
+        $config = $this->createFakeConfig() + ['queue_prefix' => 'prefix-'];
+        $queue = $connector->connect($config);
+
+        $this->assertEquals('prefix-my-queue', $queue->getQueue('my-queue'));
+    }
+
+    public function testNotQueuePrefixAddedMultipleTimes()
+    {
+        $connector = new PubSubConnector();
+        $config = $this->createFakeConfig() + ['queue_prefix' => 'prefix-'];
+        $queue = $connector->connect($config);
+
+        $this->assertEquals('prefix-default', $queue->getQueue($queue->getQueue('default')));
+    }
+
     private function createFakeConfig()
     {
         return [
