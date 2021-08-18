@@ -26,10 +26,7 @@ class PubSubConsume extends Command
     {
         $this->setSubscriptionToConsume($this->getSubscriptionName());
 
-        Artisan::call('queue:work', [
-            'connection' => 'pubsub',
-            '--sleep' => $this->getSleepOption()
-        ]);
+        Artisan::call('queue:work', ['connection' => 'pubsub', '--sleep' => $this->getSleepOption()]);
     }
 
     /**

@@ -39,4 +39,3 @@ class PubSubQueueServiceProvider extends ServiceProvider
         }
     }
 }
-
