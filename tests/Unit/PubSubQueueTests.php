@@ -16,12 +16,12 @@ use ReflectionClass;
 
 class PubSubQueueTests extends TestCase
 {
-    public function teardown()
+    public function teardown(): void
     {
         //
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->result = 'message-id';
 

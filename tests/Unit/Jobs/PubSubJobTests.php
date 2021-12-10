@@ -13,12 +13,12 @@ use Illuminate\Contracts\Queue\Job as JobContract;
 
 class PubSubJobTests extends TestCase
 {
-    public function teardown()
+    public function teardown() : void
     {
         //
     }
 
-    public function setUp()
+    public function setUp() : void
     {
         $this->messageId = '1234';
         $this->messageData = json_encode(['id' => $this->messageId, 'foo' => 'bar']);
