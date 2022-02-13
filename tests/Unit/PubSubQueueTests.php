@@ -142,7 +142,7 @@ class PubSubQueueTests extends TestCase
                 'foo' => 'bar',
             ],
             1 => 'wrong key',
-            'object' => new \StdClass,
+            'object' => new \stdClass,
         ];
 
         $queue->pushRaw($payload, '', $options);
@@ -383,7 +383,7 @@ class PubSubQueueTests extends TestCase
                 'foo' => 'bar',
             ],
             1 => 'wrong key',
-            'object' => new \StdClass,
+            'object' => new \stdClass,
         ];
 
         $this->queue->republish($this->message, 'test', $options, $delay);

@@ -27,11 +27,11 @@ class PubSubJob extends Job implements JobContract
     /**
      * Create a new job instance.
      *
-     * @param \Illuminate\Container\Container $container
-     * @param \Kainxspirits\PubSubQueue\PubSubQueue $sqs
-     * @param \Google\Cloud\PubSub\Message $job
-     * @param string       $connectionName
-     * @param string       $queue
+     * @param  \Illuminate\Container\Container  $container
+     * @param  \Kainxspirits\PubSubQueue\PubSubQueue  $sqs
+     * @param  \Google\Cloud\PubSub\Message  $job
+     * @param  string  $connectionName
+     * @param  string  $queue
      */
     public function __construct(Container $container, PubSubQueue $pubsub, Message $job, $connectionName, $queue)
     {
@@ -77,7 +77,7 @@ class PubSubJob extends Job implements JobContract
     /**
      * Release the job back into the queue.
      *
-     * @param  int   $delay
+     * @param  int  $delay
      * @return void
      */
     public function release($delay = 0)
