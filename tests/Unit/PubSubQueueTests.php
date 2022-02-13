@@ -202,6 +202,9 @@ class PubSubQueueTests extends TestCase
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
 
+        $this->message->method('data')
+            ->willReturn(base64_encode(json_encode(['foo' => 'bar'])));
+
         $this->queue->setContainer($this->createMock(Container::class));
 
         $this->assertTrue($this->queue->pop('test') instanceof PubSubJob);
