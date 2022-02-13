@@ -39,8 +39,7 @@ class PubSubConnector implements ConnectorInterface
     /**
      * Transform the config to key => value array.
      *
-     * @param  array $config
-     *
+     * @param  array  $config
      * @return array
      */
     protected function transformConfig($config)
@@ -55,9 +54,8 @@ class PubSubConnector implements ConnectorInterface
     /**
      * Transform the keys of config to camelCase.
      *
-     * @param  string $item
-     * @param  string $key
-     *
+     * @param  string  $item
+     * @param  string  $key
      * @return array
      */
     protected function transformConfigKeys($item, $key)
