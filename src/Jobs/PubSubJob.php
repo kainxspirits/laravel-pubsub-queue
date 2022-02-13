@@ -20,7 +20,7 @@ class PubSubJob extends Job implements JobContract
     /**
      * The job instance.
      *
-     * @var array
+     * @var Message
      */
     protected $job;
 
