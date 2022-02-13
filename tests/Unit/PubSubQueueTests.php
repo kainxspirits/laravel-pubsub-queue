@@ -142,7 +142,7 @@ class PubSubQueueTests extends TestCase
                 'foo' => 'bar',
             ],
             1 => 'wrong key',
-            'object' => new \StdClass,
+            'object' => new \stdClass,
         ];
 
         $queue->pushRaw($payload, '', $options);
@@ -201,6 +201,9 @@ class PubSubQueueTests extends TestCase
 
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
+
+        $this->message->method('data')
+            ->willReturn(base64_encode(json_encode(['foo' => 'bar'])));
 
         $this->queue->setContainer($this->createMock(Container::class));
 
@@ -380,7 +383,7 @@ class PubSubQueueTests extends TestCase
                 'foo' => 'bar',
             ],
             1 => 'wrong key',
-            'object' => new \StdClass,
+            'object' => new \stdClass,
         ];
 
         $this->queue->republish($this->message, 'test', $options, $delay);
