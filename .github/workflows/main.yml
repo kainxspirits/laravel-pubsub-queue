@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  push:
+    paths-ignore: ['*.md']
+  pull_request:
+    branches: [master]
+    paths-ignore: ['*.md']
+
+jobs:
+  test:
+    name: Test (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [7.4, 8.0, 8.1]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json
+      - name: Cache composer dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: laravel-pubsub-queue
+        with:
+          path: ~/.composer
+          key: php-${{ matrix.php }}-build-${{ env.cache-name }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            php-${{ matrix.php }}-build-${{ env.cache-name }}-
+            php-${{ matrix.php }}-build-
+            php-${{ matrix.php }}-
+      - name: Install composer dependencies
+        run: composer install --prefer-dist
+      - name: Run the test suite
+        run: phpdbg -qrr -dmemory_limit=-1 vendor/bin/phpunit --coverage-text
