@@ -73,14 +73,15 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Get the number of queue jobs that are ready to process.
      * Used by Laravel Horizon to auto scale workers.
-     *
-     * @param $queue
-     * @return bool
      * @see \Laravel\Horizon\RedisQueue::readyNow()
+     *
+     * @param  string|null  $queue
+     * 
+     * @return int
      */
-    public function readyNow($queue = null): bool
+    public function readyNow($queue = null)
     {
-        return $this->size($queue) >= 0;
+        return $this->size($queue);
     }
 
     /**
