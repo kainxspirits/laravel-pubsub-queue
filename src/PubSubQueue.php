@@ -58,7 +58,7 @@ class PubSubQueue extends Queue implements QueueContract
      * Create a new GCP PubSub instance.
      *
      * @param  \Google\Cloud\PubSub\PubSubClient  $pubsub
-     * @param  string $default
+     * @param  string  $default
      */
     public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true, $queuePrefix = '')
     {
@@ -101,7 +101,7 @@ class PubSubQueue extends Queue implements QueueContract
      * Push a new job onto the queue.
      *
      * @param  string|object  $job
-     * @param  mixed   $data
+     * @param  mixed  $data
      * @param  string  $queue
      * @return mixed
      */
@@ -142,7 +142,7 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
      * @param  string|object  $job
-     * @param  mixed   $data
+     * @param  mixed  $data
      * @param  string  $queue
      * @return mixed
      */
@@ -234,8 +234,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Republish a message onto the queue.
      *
-     * @param  \Google\Cloud\PubSub\Message $message
-     * @param  string $queue
+     * @param  \Google\Cloud\PubSub\Message  $message
+     * @param  string  $queue
      * @return mixed
      */
     public function republish(Message $message, $queue = null, $options = [], $delay = 0)
