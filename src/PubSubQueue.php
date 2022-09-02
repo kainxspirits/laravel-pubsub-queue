@@ -57,7 +57,7 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Create a new GCP PubSub instance.
      *
-     * @param  \Google\Cloud\PubSub\PubSubClient $pubsub
+     * @param  \Google\Cloud\PubSub\PubSubClient  $pubsub
      * @param  string $default
      */
     public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true, $queuePrefix = '')
@@ -73,7 +73,7 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Get the number of queue jobs that are ready to process.
      * Used by Laravel Horizon to auto scale workers.
-     * 
+     *
      * @see \Laravel\Horizon\RedisQueue::readyNow()
      *
      * @param  string|null  $queue
@@ -115,7 +115,7 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @param  string  $payload
      * @param  string  $queue
-     * @param  array   $options
+     * @param  array  $options
      * @return array
      */
     public function pushRaw($payload, $queue = null, array $options = [])
@@ -198,8 +198,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Push an array of jobs onto the queue.
      *
-     * @param  array   $jobs
-     * @param  mixed   $data
+     * @param  array  $jobs
+     * @param  mixed  $data
      * @param  string  $queue
      * @return mixed
      */
@@ -222,8 +222,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Acknowledge a message.
      *
-     * @param  \Google\Cloud\PubSub\Message $message
-     * @param  string $queue
+     * @param  \Google\Cloud\PubSub\Message  $message
+     * @param  string  $queue
      */
     public function acknowledge(Message $message, $queue = null)
     {
@@ -271,9 +271,10 @@ class PubSubQueue extends Queue implements QueueContract
      * Check if the attributes array only contains key-values
      * pairs made of strings.
      *
-     * @param  array $attributes
-     * @throws \UnexpectedValueException
+     * @param  array  $attributes
      * @return array
+     *
+     * @throws \UnexpectedValueException
      */
     private function validateMessageAttributes($attributes): array
     {
@@ -295,8 +296,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Get the current topic.
      *
-     * @param  string $queue
-     * @param  string $create
+     * @param  string  $queue
+     * @param  string  $create
      * @return \Google\Cloud\PubSub\Topic
      */
     public function getTopic($queue, $create = false)
