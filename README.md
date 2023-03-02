@@ -1,6 +1,6 @@
 # Laravel PubSub Queue
 
-[![Build Status](https://travis-ci.org/kainxspirits/laravel-pubsub-queue.svg?branch=master)](https://travis-ci.org/kainxspirits/laravel-pubsub-queue)
+![Build Status](https://github.com/kainxspirits/laravel-pubsub-queue/actions/workflows/main.yml/badge.svg)
 [![StyleCI](https://styleci.io/repos/131718560/shield)](https://styleci.io/repos/131718560)
 
 This package is a Laravel queue driver that uses the [Google PubSub](https://github.com/GoogleCloudPlatform/google-cloud-php-pubsub) service.
