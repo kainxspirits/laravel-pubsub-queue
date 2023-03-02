@@ -57,8 +57,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Create a new GCP PubSub instance.
      *
-     * @param \Google\Cloud\PubSub\PubSubClient $pubsub
-     * @param string $default
+     * @param  \Google\Cloud\PubSub\PubSubClient  $pubsub
+     * @param  string  $default
      */
     public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true, $queuePrefix = '')
     {
@@ -76,7 +76,6 @@ class PubSubQueue extends Queue implements QueueContract
      * To be updated if the API allow to get that data.
      *
      * @param  string  $queue
-     *
      * @return int
      */
     public function size($queue = null)
@@ -88,9 +87,8 @@ class PubSubQueue extends Queue implements QueueContract
      * Push a new job onto the queue.
      *
      * @param  string|object  $job
-     * @param  mixed   $data
+     * @param  mixed  $data
      * @param  string  $queue
-     *
      * @return mixed
      */
     public function push($job, $data = '', $queue = null)
@@ -103,8 +101,7 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @param  string  $payload
      * @param  string  $queue
-     * @param  array   $options
-     *
+     * @param  array  $options
      * @return array
      */
     public function pushRaw($payload, $queue = null, array $options = [])
@@ -131,9 +128,8 @@ class PubSubQueue extends Queue implements QueueContract
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
      * @param  string|object  $job
-     * @param  mixed   $data
+     * @param  mixed  $data
      * @param  string  $queue
-     *
      * @return mixed
      */
     public function later($delay, $job, $data = '', $queue = null)
@@ -188,10 +184,9 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Push an array of jobs onto the queue.
      *
-     * @param  array   $jobs
-     * @param  mixed   $data
+     * @param  array  $jobs
+     * @param  mixed  $data
      * @param  string  $queue
-     *
      * @return mixed
      */
     public function bulk($jobs, $data = '', $queue = null)
@@ -213,8 +208,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Acknowledge a message.
      *
-     * @param  \Google\Cloud\PubSub\Message $message
-     * @param  string $queue
+     * @param  \Google\Cloud\PubSub\Message  $message
+     * @param  string  $queue
      */
     public function acknowledge(Message $message, $queue = null)
     {
@@ -225,9 +220,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Republish a message onto the queue.
      *
-     * @param  \Google\Cloud\PubSub\Message $message
-     * @param  string $queue
-     *
+     * @param  \Google\Cloud\PubSub\Message  $message
+     * @param  string  $queue
      * @return mixed
      */
     public function republish(Message $message, $queue = null, $options = [], $delay = 0)
@@ -263,10 +257,10 @@ class PubSubQueue extends Queue implements QueueContract
      * Check if the attributes array only contains key-values
      * pairs made of strings.
      *
-     * @param  array $attributes
+     * @param  array  $attributes
+     * @return array
      *
      * @throws \UnexpectedValueException
-     * @return array
      */
     private function validateMessageAttributes($attributes): array
     {
@@ -288,9 +282,8 @@ class PubSubQueue extends Queue implements QueueContract
     /**
      * Get the current topic.
      *
-     * @param  string $queue
-     * @param  string $create
-     *
+     * @param  string  $queue
+     * @param  string  $create
      * @return \Google\Cloud\PubSub\Topic
      */
     public function getTopic($queue, $create = false)
@@ -310,7 +303,6 @@ class PubSubQueue extends Queue implements QueueContract
      * Create a new subscription to a topic.
      *
      * @param  \Google\Cloud\PubSub\Topic  $topic
-     *
      * @return \Google\Cloud\PubSub\Subscription
      */
     public function subscribeToTopic(Topic $topic)
@@ -329,7 +321,6 @@ class PubSubQueue extends Queue implements QueueContract
      * Get subscriber name.
      *
      * @param  \Google\Cloud\PubSub\Topic  $topic
-     *
      * @return string
      */
     public function getSubscriberName()
