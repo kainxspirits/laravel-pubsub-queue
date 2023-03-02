@@ -13,6 +13,46 @@ use ReflectionClass;
 
 class PubSubJobTests extends TestCase
 {
+    /**
+     * @var string
+     */
+    protected $messageId;
+
+    /**
+     * @var string
+     */
+    protected $messageData;
+
+    /**
+     * @var string
+     */
+    protected $messageEncodedData;
+
+    /**
+     * @var Container
+     */
+    protected $container;
+
+    /**
+     * @var PubSubQueue
+     */
+    protected $queue;
+
+    /**
+     * @var PubSubClient
+     */
+    protected $client;
+
+    /**
+     * @var Message
+     */
+    protected $message;
+
+    /**
+     * @var PubSubJob
+     */
+    protected $job;
+
     public function setUp(): void
     {
         $this->messageId = '1234';
