@@ -25,6 +25,13 @@ class PubSubJob extends Job implements JobContract
     protected $job;
 
     /**
+     * The decoded payload.
+     *
+     * @var array
+     */
+    protected $decoded;
+
+    /**
      * Create a new job instance.
      *
      * @param  \Illuminate\Container\Container  $container
