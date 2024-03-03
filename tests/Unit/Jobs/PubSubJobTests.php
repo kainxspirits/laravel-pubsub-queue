@@ -53,7 +53,7 @@ class PubSubJobTests extends TestCase
      */
     protected $job;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->messageId = '1234';
         $this->messageData = json_encode(['id' => $this->messageId, 'foo' => 'bar']);
