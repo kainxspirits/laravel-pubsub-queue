@@ -93,7 +93,13 @@ class PubSubQueue extends Queue implements QueueContract
      */
     public function push($job, $data = '', $queue = null)
     {
-        return $this->pushRaw($this->createPayload($job, $this->getQueue($queue), $data), $queue);
+        $options = [];
+
+        if (isset($job->orderingKey)) {
+            $options['orderingKey'] = $job->orderingKey;
+        }
+
+        return $this->pushRaw($this->createPayload($job, $this->getQueue($queue), $data), $queue, $options);
     }
 
     /**
@@ -114,8 +120,11 @@ class PubSubQueue extends Queue implements QueueContract
 
         if (! empty($options)) {
             $publish['attributes'] = $this->validateMessageAttributes($options);
-        }
 
+            if (isset($options['orderingKey'])) {
+                $publish['orderingKey'] = $options['orderingKey'];
+            }
+        }
         $topic->publish($publish);
 
         $decoded_payload = json_decode($payload, true);
@@ -195,7 +204,7 @@ class PubSubQueue extends Queue implements QueueContract
 
         foreach ((array) $jobs as $job) {
             $payload = $this->createPayload($job, $this->getQueue($queue), $data);
-            $payloads[] = ['data' => base64_encode($payload)];
+            $payloads[] = ['data' => base64_encode($payload)] + (isset($job->orderingKey) ? ['orderingKey' => $job->orderingKey] : []);
         }
 
         $topic = $this->getTopic($this->getQueue($queue), $this->topicAutoCreation);
