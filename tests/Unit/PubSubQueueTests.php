@@ -22,27 +22,27 @@ final class PubSubQueueTests extends TestCase
     protected $expectedResult = 'message-id';
 
     /**
-     * @var Topic
+     * @var \PHPUnit\Framework\MockObject\MockObject&Topic
      */
     protected $topic;
 
     /**
-     * @var PubSubClient
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubClient
      */
     protected $client;
 
     /**
-     * @var Subscription
+     * @var \PHPUnit\Framework\MockObject\MockObject&Subscription
      */
     protected $subscription;
 
     /**
-     * @var Message
+     * @var \PHPUnit\Framework\MockObject\MockObject&Message
      */
     protected $message;
 
     /**
-     * @var PubSubQueue
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue
      */
     protected $queue;
 
@@ -57,11 +57,9 @@ final class PubSubQueueTests extends TestCase
 
         $this->queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods([
+            ->onlyMethods([
                 'pushRaw',
                 'getTopic',
-                'exists',
-                'subscription',
                 'availableAt',
                 'subscribeToTopic',
             ])->getMock();
@@ -92,9 +90,10 @@ final class PubSubQueueTests extends TestCase
 
     public function testPushRaw(): void
     {
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods(['getTopic', 'subscribeToTopic'])
+            ->onlyMethods(['getTopic', 'subscribeToTopic'])
             ->getMock();
 
         $payload = json_encode(['id' => $this->expectedResult]);
@@ -120,9 +119,10 @@ final class PubSubQueueTests extends TestCase
     {
         $this->expectException(\UnexpectedValueException::class);
 
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods(['getTopic', 'subscribeToTopic'])
+            ->onlyMethods(['getTopic', 'subscribeToTopic'])
             ->getMock();
 
         $this->topic->method('publish')
@@ -397,9 +397,10 @@ final class PubSubQueueTests extends TestCase
         $this->client->method('topic')
             ->willReturn($this->topic);
 
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
 
         $this->assertTrue($queue->getTopic('test') instanceof Topic);
@@ -417,9 +418,10 @@ final class PubSubQueueTests extends TestCase
         $this->client->method('topic')
             ->willReturn($this->topic);
 
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
 
         $this->assertTrue($queue->getTopic('test', true) instanceof Topic);
@@ -436,9 +438,10 @@ final class PubSubQueueTests extends TestCase
         $this->subscription->method('exists')
             ->willReturn(false);
 
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
 
         $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
@@ -452,9 +455,10 @@ final class PubSubQueueTests extends TestCase
         $this->subscription->method('exists')
             ->willReturn(true);
 
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
 
         $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
@@ -462,9 +466,10 @@ final class PubSubQueueTests extends TestCase
 
     public function testGetSubscriberName(): void
     {
+        /** @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue $queue */
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default', 'test-subscriber'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
 
         $this->assertTrue(is_string($queue->getSubscriberName()));

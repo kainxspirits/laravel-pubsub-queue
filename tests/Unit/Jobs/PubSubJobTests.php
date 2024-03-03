@@ -29,27 +29,27 @@ final class PubSubJobTests extends TestCase
     protected $messageEncodedData;
 
     /**
-     * @var Container
+     * @var \PHPUnit\Framework\MockObject\MockObject&Container
      */
     protected $container;
 
     /**
-     * @var PubSubQueue
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue
      */
     protected $queue;
 
     /**
-     * @var PubSubClient
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubClient
      */
     protected $client;
 
     /**
-     * @var Message
+     * @var \PHPUnit\Framework\MockObject\MockObject&Message
      */
     protected $message;
 
     /**
-     * @var PubSubJob
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubJob
      */
     protected $job;
 
@@ -65,7 +65,7 @@ final class PubSubJobTests extends TestCase
 
         $this->message = $this->getMockBuilder(Message::class)
             ->setConstructorArgs([[], []])
-            ->setMethods(['data', 'id', 'attributes'])
+            ->onlyMethods(['data', 'id', 'attributes'])
             ->getMock();
 
         $this->message->method('data')
@@ -80,7 +80,7 @@ final class PubSubJobTests extends TestCase
 
         $this->job = $this->getMockBuilder(PubSubJob::class)
             ->setConstructorArgs([$this->container, $this->queue, $this->message, 'test', 'test'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
     }
 
