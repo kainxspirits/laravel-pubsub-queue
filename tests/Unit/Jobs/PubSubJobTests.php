@@ -11,7 +11,7 @@ use Kainxspirits\PubSubQueue\PubSubQueue;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-class PubSubJobTests extends TestCase
+final class PubSubJobTests extends TestCase
 {
     /**
      * @var string
@@ -29,31 +29,31 @@ class PubSubJobTests extends TestCase
     protected $messageEncodedData;
 
     /**
-     * @var Container
+     * @var \PHPUnit\Framework\MockObject\MockObject&Container
      */
     protected $container;
 
     /**
-     * @var PubSubQueue
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubQueue
      */
     protected $queue;
 
     /**
-     * @var PubSubClient
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubClient
      */
     protected $client;
 
     /**
-     * @var Message
+     * @var \PHPUnit\Framework\MockObject\MockObject&Message
      */
     protected $message;
 
     /**
-     * @var PubSubJob
+     * @var \PHPUnit\Framework\MockObject\MockObject&PubSubJob
      */
     protected $job;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->messageId = '1234';
         $this->messageData = json_encode(['id' => $this->messageId, 'foo' => 'bar']);
@@ -65,7 +65,7 @@ class PubSubJobTests extends TestCase
 
         $this->message = $this->getMockBuilder(Message::class)
             ->setConstructorArgs([[], []])
-            ->setMethods(['data', 'id', 'attributes'])
+            ->onlyMethods(['data', 'id', 'attributes'])
             ->getMock();
 
         $this->message->method('data')
@@ -80,38 +80,38 @@ class PubSubJobTests extends TestCase
 
         $this->job = $this->getMockBuilder(PubSubJob::class)
             ->setConstructorArgs([$this->container, $this->queue, $this->message, 'test', 'test'])
-            ->setMethods()
+            ->onlyMethods([])
             ->getMock();
     }
 
-    public function testImplementsJobInterface()
+    public function testImplementsJobInterface(): void
     {
         $reflection = new ReflectionClass(PubSubJob::class);
         $this->assertTrue($reflection->implementsInterface(JobContract::class));
     }
 
-    public function testGetJobId()
+    public function testGetJobId(): void
     {
         $this->assertEquals($this->job->getJobId(), $this->messageId);
     }
 
-    public function testGetRawBody()
+    public function testGetRawBody(): void
     {
         $this->assertEquals($this->job->getRawBody(), $this->messageData);
     }
 
-    public function testDeleteMethodSetDeletedProperty()
+    public function testDeleteMethodSetDeletedProperty(): void
     {
         $this->job->delete();
         $this->assertTrue($this->job->isDeleted());
     }
 
-    public function testAttempts()
+    public function testAttempts(): void
     {
         $this->assertTrue(is_int($this->job->attempts()));
     }
 
-    public function testReleaseAndPublish()
+    public function testReleaseAndPublish(): void
     {
         $this->queue->expects($this->once())
             ->method('republish')
@@ -136,7 +136,7 @@ class PubSubJobTests extends TestCase
         $this->job->release();
     }
 
-    public function testReleaseMethodSetReleasedProperty()
+    public function testReleaseMethodSetReleasedProperty(): void
     {
         $this->job->release();
         $this->assertTrue($this->job->isReleased());

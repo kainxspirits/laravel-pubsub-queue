@@ -8,16 +8,16 @@ use Kainxspirits\PubSubQueue\PubSubQueue;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-class PubSubConnectorTests extends TestCase
+final class PubSubConnectorTests extends TestCase
 {
-    public function testImplementsConnectorInterface()
+    public function testImplementsConnectorInterface(): void
     {
         putenv('SUPPRESS_GCLOUD_CREDS_WARNING=true');
         $reflection = new ReflectionClass(PubSubConnector::class);
         $this->assertTrue($reflection->implementsInterface(ConnectorInterface::class));
     }
 
-    public function testConnectReturnsPubSubQueueInstance()
+    public function testConnectReturnsPubSubQueueInstance(): void
     {
         $connector = new PubSubConnector;
         $config = $this->createFakeConfig();
@@ -27,7 +27,7 @@ class PubSubConnectorTests extends TestCase
         $this->assertEquals($queue->getSubscriberName(), 'test-subscriber');
     }
 
-    public function testQueuePrefixAdded()
+    public function testQueuePrefixAdded(): void
     {
         $connector = new PubSubConnector();
         $config = $this->createFakeConfig() + ['queue_prefix' => 'prefix-'];
@@ -36,7 +36,7 @@ class PubSubConnectorTests extends TestCase
         $this->assertEquals('prefix-my-queue', $queue->getQueue('my-queue'));
     }
 
-    public function testNotQueuePrefixAddedMultipleTimes()
+    public function testNotQueuePrefixAddedMultipleTimes(): void
     {
         $connector = new PubSubConnector();
         $config = $this->createFakeConfig() + ['queue_prefix' => 'prefix-'];
