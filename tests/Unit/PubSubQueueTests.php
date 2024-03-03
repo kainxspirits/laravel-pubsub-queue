@@ -67,13 +67,13 @@ class PubSubQueueTests extends TestCase
             ])->getMock();
     }
 
-    public function testImplementsQueueInterface()
+    public function testImplementsQueueInterface(): void
     {
         $reflection = new ReflectionClass(PubSubQueue::class);
         $this->assertTrue($reflection->implementsInterface(QueueContract::class));
     }
 
-    public function testPushNewJob()
+    public function testPushNewJob(): void
     {
         $job = 'test';
         $data = ['foo' => 'bar'];
@@ -90,7 +90,7 @@ class PubSubQueueTests extends TestCase
         $this->assertEquals($this->expectedResult, $this->queue->push('test', $data));
     }
 
-    public function testPushRaw()
+    public function testPushRaw(): void
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default'])
@@ -116,7 +116,7 @@ class PubSubQueueTests extends TestCase
         $this->assertEquals($this->expectedResult, $queue->pushRaw($payload));
     }
 
-    public function testPushRawOptionsOnlyAcceptKeyValueStrings()
+    public function testPushRawOptionsOnlyAcceptKeyValueStrings(): void
     {
         $this->expectException(\UnexpectedValueException::class);
 
@@ -148,7 +148,7 @@ class PubSubQueueTests extends TestCase
         $queue->pushRaw($payload, '', $options);
     }
 
-    public function testLater()
+    public function testLater(): void
     {
         $job = 'test';
         $delay = 60;
@@ -185,7 +185,7 @@ class PubSubQueueTests extends TestCase
         $this->assertEquals($this->expectedResult, $this->queue->later($delay, $job, ['foo' => 'bar']));
     }
 
-    public function testPopWhenJobsAvailable()
+    public function testPopWhenJobsAvailable(): void
     {
         $this->subscription->expects($this->once())
             ->method('acknowledge');
@@ -210,7 +210,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($this->queue->pop('test') instanceof PubSubJob);
     }
 
-    public function testPopWhenNoJobAvailable()
+    public function testPopWhenNoJobAvailable(): void
     {
         $this->subscription->expects($this->exactly(0))
             ->method('acknowledge');
@@ -230,7 +230,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue(is_null($this->queue->pop('test')));
     }
 
-    public function testPopWhenTopicDoesNotExist()
+    public function testPopWhenTopicDoesNotExist(): void
     {
         $this->queue->method('getTopic')
             ->willReturn($this->topic);
@@ -241,7 +241,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue(is_null($this->queue->pop('test')));
     }
 
-    public function testPopWhenJobDelayed()
+    public function testPopWhenJobDelayed(): void
     {
         $delay = 60;
         $timestamp = Carbon::now()->addSeconds($delay)->getTimestamp();
@@ -266,7 +266,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue(is_null($this->queue->pop('test')));
     }
 
-    public function testBulk()
+    public function testBulk(): void
     {
         $jobs = ['test'];
         $data = ['foo' => 'bar'];
@@ -289,7 +289,7 @@ class PubSubQueueTests extends TestCase
         $this->assertEquals($this->expectedResult, $this->queue->bulk($jobs, $data));
     }
 
-    public function testAcknowledge()
+    public function testAcknowledge(): void
     {
         $this->subscription->expects($this->once())
             ->method('acknowledge');
@@ -303,7 +303,7 @@ class PubSubQueueTests extends TestCase
         $this->queue->acknowledge($this->message);
     }
 
-    public function testRepublish()
+    public function testRepublish(): void
     {
         $options = ['foo' => 'bar'];
         $delay = 60;
@@ -358,7 +358,7 @@ class PubSubQueueTests extends TestCase
         $this->queue->republish($this->message, 'test', $options, $delay);
     }
 
-    public function testRepublishOptionsOnlyAcceptString()
+    public function testRepublishOptionsOnlyAcceptString(): void
     {
         $this->expectException(\UnexpectedValueException::class);
 
@@ -389,7 +389,7 @@ class PubSubQueueTests extends TestCase
         $this->queue->republish($this->message, 'test', $options, $delay);
     }
 
-    public function testGetTopic()
+    public function testGetTopic(): void
     {
         $this->topic->method('exists')
             ->willReturn(true);
@@ -405,7 +405,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->getTopic('test') instanceof Topic);
     }
 
-    public function testCreateTopicAndReturnIt()
+    public function testCreateTopicAndReturnIt(): void
     {
         $this->topic->method('exists')
             ->willReturn(false);
@@ -425,7 +425,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->getTopic('test', true) instanceof Topic);
     }
 
-    public function testSubscribtionIsCreated()
+    public function testSubscribtionIsCreated(): void
     {
         $this->topic->method('subscription')
             ->willReturn($this->subscription);
@@ -444,7 +444,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
     }
 
-    public function testSubscriptionIsRetrieved()
+    public function testSubscriptionIsRetrieved(): void
     {
         $this->topic->method('subscription')
             ->willReturn($this->subscription);
@@ -460,7 +460,7 @@ class PubSubQueueTests extends TestCase
         $this->assertTrue($queue->subscribeToTopic($this->topic) instanceof Subscription);
     }
 
-    public function testGetSubscriberName()
+    public function testGetSubscriberName(): void
     {
         $queue = $this->getMockBuilder(PubSubQueue::class)
             ->setConstructorArgs([$this->client, 'default', 'test-subscriber'])
@@ -471,7 +471,7 @@ class PubSubQueueTests extends TestCase
         $this->assertEquals($queue->getSubscriberName(), 'test-subscriber');
     }
 
-    public function testGetPubSub()
+    public function testGetPubSub(): void
     {
         $this->assertTrue($this->queue->getPubSub() instanceof PubSubClient);
     }

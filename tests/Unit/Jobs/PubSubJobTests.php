@@ -84,34 +84,34 @@ class PubSubJobTests extends TestCase
             ->getMock();
     }
 
-    public function testImplementsJobInterface()
+    public function testImplementsJobInterface(): void
     {
         $reflection = new ReflectionClass(PubSubJob::class);
         $this->assertTrue($reflection->implementsInterface(JobContract::class));
     }
 
-    public function testGetJobId()
+    public function testGetJobId(): void
     {
         $this->assertEquals($this->job->getJobId(), $this->messageId);
     }
 
-    public function testGetRawBody()
+    public function testGetRawBody(): void
     {
         $this->assertEquals($this->job->getRawBody(), $this->messageData);
     }
 
-    public function testDeleteMethodSetDeletedProperty()
+    public function testDeleteMethodSetDeletedProperty(): void
     {
         $this->job->delete();
         $this->assertTrue($this->job->isDeleted());
     }
 
-    public function testAttempts()
+    public function testAttempts(): void
     {
         $this->assertTrue(is_int($this->job->attempts()));
     }
 
-    public function testReleaseAndPublish()
+    public function testReleaseAndPublish(): void
     {
         $this->queue->expects($this->once())
             ->method('republish')
@@ -136,7 +136,7 @@ class PubSubJobTests extends TestCase
         $this->job->release();
     }
 
-    public function testReleaseMethodSetReleasedProperty()
+    public function testReleaseMethodSetReleasedProperty(): void
     {
         $this->job->release();
         $this->assertTrue($this->job->isReleased());
