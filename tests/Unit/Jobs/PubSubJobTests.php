@@ -11,7 +11,7 @@ use Kainxspirits\PubSubQueue\PubSubQueue;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-class PubSubJobTests extends TestCase
+final class PubSubJobTests extends TestCase
 {
     /**
      * @var string

@@ -8,7 +8,7 @@ use Kainxspirits\PubSubQueue\PubSubQueue;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-class PubSubConnectorTests extends TestCase
+final class PubSubConnectorTests extends TestCase
 {
     public function testImplementsConnectorInterface(): void
     {
