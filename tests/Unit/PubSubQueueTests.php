@@ -101,7 +101,7 @@ final class PubSubQueueTests extends TestCase
         $this->topic->method('publish')
             ->willReturn($this->expectedResult)
             ->with($this->callback(function ($publish) use ($payload) {
-                $decoded_payload = base64_decode($publish['data']);
+                $decoded_payload = $publish['data'];
 
                 return $decoded_payload === $payload;
             }));
@@ -203,7 +203,7 @@ final class PubSubQueueTests extends TestCase
             ->willReturn($this->topic);
 
         $this->message->method('data')
-            ->willReturn(base64_encode(json_encode(['foo' => 'bar'])));
+            ->willReturn(json_encode(['foo' => 'bar']));
 
         $this->queue->setContainer($this->createMock(Container::class));
 
@@ -275,7 +275,7 @@ final class PubSubQueueTests extends TestCase
             ->method('publishBatch')
             ->willReturn($this->expectedResult)
             ->with($this->callback(function ($payloads) use ($jobs, $data) {
-                $decoded_payload = json_decode(base64_decode($payloads[0]['data']), true);
+                $decoded_payload = json_decode($payloads[0]['data'], true);
 
                 return $decoded_payload['job'] === $jobs[0] && $decoded_payload['data'] === $data;
             }));
