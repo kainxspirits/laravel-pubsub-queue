@@ -34,8 +34,14 @@ You can check [Google Cloud PubSub client](http://googleapis.github.io/google-cl
     'retries' => 3,
     'request_timeout' => 60,
     'subscriber' => 'subscriber-name',
+    'topic_auto_creation' => true,
+    'subscription_auto_creation' => true,
 ],
 ```
+
+## Avoiding Administrator Operations Limits
+
+To avoid limit issues, change the `topic_auto_creation` and `subscription_auto_creation` flags to false.
 
 ## Testing
 
