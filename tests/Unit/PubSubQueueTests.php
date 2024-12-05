@@ -76,6 +76,8 @@ final class PubSubQueueTests extends TestCase
         $job = 'test';
         $data = ['foo' => 'bar'];
 
+        $this->queue->setContainer(Container::getInstance());
+
         $this->queue->expects($this->once())
             ->method('pushRaw')
             ->willReturn($this->expectedResult)
