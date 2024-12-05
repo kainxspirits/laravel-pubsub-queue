@@ -99,7 +99,15 @@ class PubSubQueue extends Queue implements QueueContract
             $options['orderingKey'] = $job->orderingKey;
         }
 
-        return $this->pushRaw($this->createPayload($job, $this->getQueue($queue), $data), $queue, $options);
+        return $this->enqueueUsing(
+            $job,
+            $this->createPayload($job, $this->getQueue($queue), $data),
+            $queue,
+            null,
+            function ($payload, $queue) use ($options) {
+                return $this->pushRaw($payload, $queue, $options);
+            }
+        );
     }
 
     /**
