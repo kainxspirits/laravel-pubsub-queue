@@ -124,7 +124,7 @@ class PubSubQueue extends Queue implements QueueContract
 
         $this->subscribeToTopic($topic);
 
-        $publish = ['data' => base64_encode($payload)];
+        $publish = ['data' => $payload];
 
         if (! empty($options)) {
             $publish['attributes'] = $this->validateMessageAttributes($options);
@@ -212,7 +212,7 @@ class PubSubQueue extends Queue implements QueueContract
 
         foreach ((array) $jobs as $job) {
             $payload = $this->createPayload($job, $this->getQueue($queue), $data);
-            $payloads[] = ['data' => base64_encode($payload)] + (isset($job->orderingKey) ? ['orderingKey' => $job->orderingKey] : []);
+            $payloads[] = ['data' => $payload] + (isset($job->orderingKey) ? ['orderingKey' => $job->orderingKey] : []);
         }
 
         $topic = $this->getTopic($this->getQueue($queue), $this->topicAutoCreation);

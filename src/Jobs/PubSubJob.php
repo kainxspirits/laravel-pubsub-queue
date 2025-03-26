@@ -68,7 +68,7 @@ class PubSubJob extends Job implements JobContract
      */
     public function getRawBody()
     {
-        return base64_decode($this->job->data());
+        return $this->job->data();
     }
 
     /**
