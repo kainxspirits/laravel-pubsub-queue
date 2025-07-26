@@ -4,17 +4,45 @@ namespace Kainxspirits\PubSubQueue\Connectors;
 
 use Google\Cloud\PubSub\PubSubClient;
 use Illuminate\Queue\Connectors\ConnectorInterface;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Kainxspirits\PubSubQueue\PubSubQueue;
 
 class PubSubConnector implements ConnectorInterface
 {
-    /**
-     * Default queue name.
-     *
-     * @var string
-     */
-    protected $default_queue = 'default';
+    protected static $exceptKeys = [
+        'subscriber',
+        'requestTimeout',
+        'createTopics',
+        'createSubscriptions',
+        'useQueueAsSubscriber',
+        'queuePrefix',
+        'queue',
+        'accessToken',
+        'shouldSignRequest',
+        'preferNumericProjectId',
+        'asyncHttpHandler',
+        'delayFunc',
+        'calcDelayFunction',
+    ];
+
+    protected static $replacedKeys = [
+        'restOptions' => 'transportConfig.rest',
+        'grpcOptions' => 'transportConfig.grpc',
+        'httpHandler' => 'transportConfig.rest.httpHandler',
+        'authHttpHandler' => 'credentialsConfig.authHttpHandler',
+        'quotaProject' => 'credentialsConfig.quotaProject',
+        'defaultScopes' => 'credentialsConfig.defaultScopes',
+        'scopes' => 'credentialsConfig.scopes',
+        'keyFile' => 'credentials',
+        'keyFilePath' => 'credentials',
+        'credentialsFetcher' => 'credentials',
+        'authCacheOptions' => 'credentialsConfig.authCacheOptions',
+        'authCache' => 'credentialsConfig.authCache',
+        'retries' => 'retrySettings.maxRetries',
+        'restRetryFunction' => 'retrySettings.retryFunction',
+        'grpcRetryFunction' => 'retrySettings.retryFunction',
+    ];
 
     /**
      * Establish a queue connection.
@@ -28,11 +56,7 @@ class PubSubConnector implements ConnectorInterface
 
         return new PubSubQueue(
             new PubSubClient($gcp_config),
-            $config['queue'] ?? $this->default_queue,
-            $config['subscriber'] ?? 'subscriber',
-            $config['create_topics'] ?? true,
-            $config['create_subscriptions'] ?? true,
-            $config['queue_prefix'] ?? ''
+            $config
         );
     }
 
@@ -44,11 +68,25 @@ class PubSubConnector implements ConnectorInterface
      */
     protected function transformConfig($config)
     {
-        return array_reduce(array_map([$this, 'transformConfigKeys'], $config, array_keys($config)), function ($carry, $item) {
+        $gcpConfig = array_reduce(array_map([$this, 'transformConfigKeys'], $config, array_keys($config)), function ($carry, $item) {
             $carry[$item[0]] = $item[1];
 
             return $carry;
         }, []);
+
+        foreach ($gcpConfig as $key => $value) {
+            if (in_array($key, static::$exceptKeys, true)) {
+                unset($gcpConfig[$key]);
+                continue;
+            }
+
+            if (array_key_exists($key, static::$replacedKeys)) {
+                Arr::set($gcpConfig, static::$replacedKeys[$key], $value);
+                unset($gcpConfig[$key]);
+            }
+        }
+
+        return $gcpConfig;
     }
 
     /**

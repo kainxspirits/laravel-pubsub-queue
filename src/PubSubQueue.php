@@ -55,19 +55,27 @@ class PubSubQueue extends Queue implements QueueContract
     protected $queuePrefix = '';
 
     /**
+     * Use queue name as subscriber name.
+     *
+     * @var bool
+     */
+    protected $useQueueAsSubscriber;
+
+    /**
      * Create a new GCP PubSub instance.
      *
      * @param  \Google\Cloud\PubSub\PubSubClient  $pubsub
      * @param  string  $default
      */
-    public function __construct(PubSubClient $pubsub, $default, $subscriber = 'subscriber', $topicAutoCreation = true, $subscriptionAutoCreation = true, $queuePrefix = '')
+    public function __construct(PubSubClient $pubsub, $config)
     {
         $this->pubsub = $pubsub;
-        $this->default = $default;
-        $this->subscriber = $subscriber;
-        $this->topicAutoCreation = $topicAutoCreation;
-        $this->subscriptionAutoCreation = $subscriptionAutoCreation;
-        $this->queuePrefix = $queuePrefix;
+        $this->default = $config['queue'] ?? 'default';
+        $this->subscriber = $config['subscriber'] ?? 'subscriber';
+        $this->topicAutoCreation = $config['create_topics'] ?? true;
+        $this->subscriptionAutoCreation = $config['create_subscriptions'] ?? true;
+        $this->queuePrefix = $config['queue_prefix'] ?? '';
+        $this->useQueueAsSubscriber = $config['use_queue_as_subscriber'] ?? false;
     }
 
     /**
@@ -306,6 +314,11 @@ class PubSubQueue extends Queue implements QueueContract
     public function getTopic($queue, $create = false)
     {
         $queue = $this->getQueue($queue);
+
+        if ($this->useQueueAsSubscriber) {
+            $this->setSubscriberName($queue);
+        }
+
         $topic = $this->pubsub->topic($queue);
 
         // don't check topic if automatic creation is not required, to avoid additional administrator operations calls
@@ -335,9 +348,19 @@ class PubSubQueue extends Queue implements QueueContract
     }
 
     /**
+     * Set the subscriber name.
+     *
+     * @param  string  $subscriber
+     * @return void
+     */
+    public function setSubscriberName($subscriber)
+    {
+        $this->subscriber = $subscriber;
+    }
+
+    /**
      * Get subscriber name.
      *
-     * @param  \Google\Cloud\PubSub\Topic  $topic
      * @return string
      */
     public function getSubscriberName()
